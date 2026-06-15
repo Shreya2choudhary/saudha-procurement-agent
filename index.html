@@ -338,6 +338,7 @@ const CATALOG = [
     sizes:[
       {label:'10kg', pack:'bag · 10kg', unit:'bag', offers:{bigbasket:{price:485,stock:true}, metro:{price:498,stock:true}, hyper:{price:492,stock:true}, jiomart:{price:505,stock:true}}},
       {label:'5kg',  pack:'bag · 5kg',  unit:'bag', offers:{bigbasket:{price:255,stock:true}, metro:{price:262,stock:true}, hyper:{price:258,stock:true}, jiomart:{price:268,stock:true}}},
+      {label:'1kg',  pack:'pack · 1kg', unit:'pack', offers:{bigbasket:{price:56,stock:true}, metro:{price:58,stock:true}, hyper:{price:57,stock:true}, jiomart:{price:60,stock:true}}},
     ] },
   {id:'fortune', emoji:'🌾', cat:'staples',
     name:{en:'Fortune Chakki Atta 10kg',hi:'Fortune Chakki Atta'},
@@ -353,6 +354,7 @@ const CATALOG = [
     sizes:[
       {label:'15L tin', pack:'tin · 15L',     unit:'tin',  offers:{hyper:{price:1860,stock:true}, metro:{price:1920,stock:true}, bigbasket:{price:1890,stock:true}, grain:{price:1845,stock:true}}},
       {label:'5L jar',  pack:'jar · 5L',      unit:'jar',  offers:{hyper:{price:640,stock:true}, metro:{price:660,stock:true}, bigbasket:{price:648,stock:true}, grain:{price:632,stock:true}}},
+      {label:'2L',      pack:'bottle · 2L',   unit:'bottle', offers:{hyper:{price:252,stock:true}, metro:{price:262,stock:true}, bigbasket:{price:256,stock:true}, grain:{price:248,stock:true}}},
       {label:'1L',      pack:'case · 12×1L',  unit:'case', offers:{hyper:{price:1500,stock:true}, metro:{price:1560,stock:true}, bigbasket:{price:1530,stock:true}, grain:{price:1490,stock:true}}},
     ] },
   {id:'rice', emoji:'🍚', cat:'staples',
@@ -607,7 +609,7 @@ async function handleText(text){
   if(!parsed.length){ await botSay(L[lang].parsedNone,700); return; }
   parsed.forEach(p=>addToCart(p.id,p.qty));
   await botSay(L[lang].parsedSome,800);
-  const lines=parsed.map(p=>{const pr=findProduct(p.id);return `• <b>${pr.name[lang]}</b> — ${p.qty} ${pr.unit}${p.qty>1?'s':''}`}).join('<br>');
+  const lines=parsed.map(p=>{const pr=findProduct(p.id);const sz=sizeOf(pr,0);return `• <b>${pr.name[lang]}</b>${sizesOf(pr).length>1?' '+sz.label:''} — ${p.qty} ${sz.unit}${p.qty>1?'s':''}`}).join('<br>');
   bubbleIn(lines);
   // ledger suggestion (hybrid inventory)
   const missing=LEDGER_LOW.filter(id=>!cart.find(c=>c.productId===id));
@@ -947,8 +949,8 @@ async function pushStockAlert(){
     const days=Math.max(1,Math.round(s.onHand/(s.velocity/7)));
     return `<div class="fl"><div class="ic">${p.emoji}</div>
       <div class="info"><div class="nm">${p.name[lang]}</div>
-        <div class="meta">Stock: ${s.onHand} ${p.unit} · ~${days} din bache · ${s.velocity}/week bikta hai</div></div>
-      <div class="rt"><div class="big">+${s.suggest} ${p.unit}</div><small>suggested</small></div></div>`;
+        <div class="meta">Stock: ${s.onHand} ${sizeOf(p,0).unit} · ~${days} din bache · ${s.velocity}/week bikta hai</div></div>
+      <div class="rt"><div class="big">+${s.suggest} ${sizeOf(p,0).unit}</div><small>suggested</small></div></div>`;
   }).join('');
   await botSay('🔔 <b>Stock alert</b> — kuch items threshold ke neeche aa gaye. Maine poori order list taiyaar kar di hai.',1000);
   const card=el(`<div class="fc fadein">
