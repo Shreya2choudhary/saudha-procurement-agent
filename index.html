@@ -247,6 +247,7 @@
   .t-up{background:#3a1414;color:#ff8a8a}
   .nudge{padding:8px 13px;background:rgba(0,168,132,.08);font-size:11.5px;color:#9be8c6;border-top:1px solid var(--wa-line)}
   .nudge b{color:#fff}
+  .fc-sec{padding:9px 13px 4px;font-size:10.5px;font-weight:700;color:var(--wa-sub);text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--wa-line);background:rgba(255,255,255,.02)}
 
   .fadein{animation:pop .25s ease}
   @keyframes pop{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
@@ -419,12 +420,20 @@ const PRICE_TREND = {
 };
 function trendFor(pid,sup){const t=PRICE_TREND[pid];return t&&t[sup]?t[sup]:0}
 
-/* ---- Supplier payments / udhaar tracker ---- */
+/* ---- Supplier payments / udhaar tracker (both ways) ---- */
+// what the store owes distributors
 const PAYABLES = [
   {sup:'metro',     amt:4860, dueInDays:2},
   {sup:'grain',     amt:2100, dueInDays:-1},   // overdue
   {sup:'hyper',     amt:3240, dueInDays:6},
   {sup:'bigbasket', amt:1480, dueInDays:11},
+];
+// what distributors owe the store (credit notes, scheme payouts, returns, deposits)
+const RECEIVABLES = [
+  {sup:'metro',     amt:680, type:'Credit note',   note:'2 oil tin damaged — return accepted', ageDays:3},
+  {sup:'hyper',     amt:540, type:'Scheme payout',  note:'Q2 incentive slab — credit pending', ageDays:9},
+  {sup:'bigbasket', amt:240, type:'Return pickup',  note:'expired Maggi stock — pickup done',   ageDays:1},
+  {sup:'grain',     amt:150, type:'Crate deposit',  note:'refundable on khaali crate return',   ageDays:20},
 ];
 
 /* =========================================================
@@ -994,29 +1003,42 @@ function renderSchemes(){
 
 /* ============ SUPPLIER PAYMENT / UDHAAR TRACKER ============ */
 function renderPayments(){
-  clearQuick(); sys('💳 Udhaar / Payments due');
-  const sorted=[...PAYABLES].sort((a,b)=>a.dueInDays-b.dueInDays);
-  const rows=sorted.map(pa=>{
+  clearQuick(); sys('💳 Udhaar — dono taraf');
+  // payables (you owe)
+  const payable=[...PAYABLES].sort((a,b)=>a.dueInDays-b.dueInDays).map(pa=>{
     const sup=SUPPLIERS[pa.sup];
-    let badge,cls,txt;
+    let badge,txt;
     if(pa.dueInDays<0){badge='b-over';txt=`${-pa.dueInDays} din OVERDUE`;}
     else if(pa.dueInDays<=3){badge='b-due';txt=`${pa.dueInDays} din mein due`;}
     else{badge='b-ok';txt=`${pa.dueInDays} din baaki`;}
     return `<div class="fl"><div class="ic" style="background:${sup.color}22">💵</div>
-      <div class="info"><div class="nm">${sup.name}</div>
-        <div class="meta"><span class="badge ${badge}">${txt}</span></div></div>
-      <div class="rt"><div class="big">₹${pa.amt.toLocaleString('en-IN')}</div><small>baaki</small></div></div>`;
+      <div class="info"><div class="nm">${sup.name}</div><div class="meta"><span class="badge ${badge}">${txt}</span></div></div>
+      <div class="rt"><div class="big" style="color:#ff9b9b">₹${pa.amt.toLocaleString('en-IN')}</div><small>dena</small></div></div>`;
   }).join('');
-  const total=PAYABLES.reduce((t,p)=>t+p.amt,0);
+  // receivables (owed to you)
+  const receivable=[...RECEIVABLES].sort((a,b)=>b.ageDays-a.ageDays).map(rc=>{
+    const sup=SUPPLIERS[rc.sup];
+    return `<div class="fl"><div class="ic" style="background:${sup.color}22">📄</div>
+      <div class="info"><div class="nm">${sup.name} <span class="badge b-scheme">${rc.type}</span></div>
+        <div class="meta">${rc.note} · ${rc.ageDays} din se pending</div></div>
+      <div class="rt"><div class="big save">₹${rc.amt.toLocaleString('en-IN')}</div><small>lena</small></div></div>`;
+  }).join('');
+  const totDue=PAYABLES.reduce((t,p)=>t+p.amt,0);
+  const totGet=RECEIVABLES.reduce((t,r)=>t+r.amt,0);
+  const net=totDue-totGet;
   const overdue=PAYABLES.filter(p=>p.dueInDays<0).length;
   const card=el(`<div class="fc fadein">
-    <div class="fc-h udh"><span class="fi">🧾</span><div><div class="ft">Kul ₹${total.toLocaleString('en-IN')} dena hai</div><div class="fs">${overdue?overdue+' overdue · ':''}relationships kharab hone se pehle settle karein</div></div></div>
-    ${rows}
-    <div class="fc-foot"><button class="btn pay" onclick="setReminders()">🔔 Payment reminders set karo</button></div>
+    <div class="fc-h udh"><span class="fi">🧾</span><div><div class="ft">Net ₹${Math.abs(net).toLocaleString('en-IN')} ${net>=0?'aapko dena hai':'aapko lena hai'}</div><div class="fs">₹${totDue.toLocaleString('en-IN')} dena · ₹${totGet.toLocaleString('en-IN')} lena${overdue?` · ${overdue} overdue`:''}</div></div></div>
+    <div class="fc-sec">🔴 Aapko DENA hai (${PAYABLES.length})</div>
+    ${payable}
+    <div class="fc-sec">🟢 Aapko LENA hai (${RECEIVABLES.length})</div>
+    ${receivable}
+    <div class="nudge">🟢 <b>₹${totGet.toLocaleString('en-IN')} aapka phasa hua hai</b> — credit notes aur scheme payouts. NAM ne suppliers ke saath flag kar diya hai, settle hote hi adjust ho jayega.</div>
+    <div class="fc-foot"><button class="btn pay" onclick="setReminders()">🔔 Reminders set karo (dono taraf)</button></div>
   </div>`);
   chat.appendChild(card);scroll(); homeMenu();
 }
-async function setReminders(){clearQuick();await botSay('Ho gaya ✅ Har payment se 1 din pehle aapko WhatsApp reminder bhej dunga. Grain ka overdue abhi clear karna better hoga.',700);homeMenu();}
+async function setReminders(){clearQuick();await botSay('Ho gaya ✅ Dena hai uska 1 din pehle reminder, aur lena hai (credit notes/scheme) uske liye main suppliers ke saath follow-up karta rahunga. Grain ka overdue abhi clear karna better hoga.',700);homeMenu();}
 
 /* ============ PRICE INTELLIGENCE ============ */
 function renderPriceWatch(){
