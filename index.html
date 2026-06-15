@@ -102,6 +102,9 @@
   .mini{font-size:11px;border:none;background:transparent;cursor:pointer;padding:4px 6px;border-radius:6px;font-weight:600}
   .mini.swap{color:var(--wa-accent)}
   .mini.rm{color:#ff8a8a}
+  .sizes{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+  .sizebtn{font-size:11px;border:1px solid var(--wa-line);background:transparent;color:var(--wa-sub);padding:3px 10px;border-radius:12px;cursor:pointer;font-weight:600}
+  .sizebtn.on{border-color:var(--wa-green);color:var(--wa-green);background:rgba(0,168,132,.1)}
   .scoreflag{display:inline-block;font-size:9.5px;background:#16323a;color:var(--wa-accent);padding:1px 6px;border-radius:8px;margin-left:5px}
 
   .why{padding:9px 13px; background:rgba(83,189,235,.07); font-size:11.5px; color:var(--wa-sub); line-height:1.5}
@@ -302,10 +305,13 @@ const CATALOG = [
     offers:{metro:{price:240,stock:true}, jiomart:{price:252,stock:true}} },
 
   {id:'frooti', emoji:'🧃', cat:'juice',
-    name:{en:'Frooti 250ml',hi:'Frooti 250ml'},
-    match:['frooti'], pack:'case · 24 pcs', unit:'case',
-    offers:{metro:{price:492,stock:true}, hyper:{price:498,stock:true}, bigbasket:{price:480,stock:true}, jiomart:{price:504,stock:true}},
-    alts:['real','slice','maaza'] },
+    name:{en:'Frooti Mango',hi:'Frooti Mango'},
+    match:['frooti'], alts:['real','slice','maaza'],
+    sizes:[
+      {label:'250ml', pack:'case · 24 pcs', unit:'case', offers:{metro:{price:492,stock:true}, hyper:{price:498,stock:true}, bigbasket:{price:480,stock:true}, jiomart:{price:504,stock:true}}},
+      {label:'600ml', pack:'case · 12 pcs', unit:'case', offers:{metro:{price:660,stock:true}, hyper:{price:672,stock:true}, bigbasket:{price:648,stock:true}, jiomart:{price:684,stock:true}}},
+      {label:'1.2L',  pack:'case · 9 pcs',  unit:'case', offers:{metro:{price:756,stock:true}, hyper:{price:768,stock:true}, bigbasket:{price:744,stock:true}}},
+    ] },
   {id:'maaza', emoji:'🧃', cat:'juice',
     name:{en:'Maaza Mango 250ml',hi:'Maaza Mango'},
     match:['maaza'], pack:'case · 24 pcs', unit:'case',
@@ -320,14 +326,19 @@ const CATALOG = [
     offers:{metro:{price:456,stock:true}, bigbasket:{price:468,stock:true}} },
 
   {id:'sugar', emoji:'🧂', cat:'staples',
-    name:{en:'Sugar (Cheeni) 50kg',hi:'Cheeni 50kg'},
-    match:['sugar','cheeni','chini','shakkar'], pack:'sack · 50kg', unit:'sack',
-    offers:{hyper:{price:2100,stock:true}, metro:{price:2175,stock:true}, bigbasket:{price:2150,stock:true}, grain:{price:2090,stock:true}} },
+    name:{en:'Sugar (Cheeni)',hi:'Cheeni'},
+    match:['sugar','cheeni','chini','shakkar'],
+    sizes:[
+      {label:'50kg', pack:'sack · 50kg', unit:'sack', offers:{hyper:{price:2100,stock:true}, metro:{price:2175,stock:true}, bigbasket:{price:2150,stock:true}, grain:{price:2090,stock:true}}},
+      {label:'25kg', pack:'sack · 25kg', unit:'sack', offers:{hyper:{price:1080,stock:true}, metro:{price:1110,stock:true}, bigbasket:{price:1095,stock:true}, grain:{price:1075,stock:true}}},
+    ] },
   {id:'atta', emoji:'🌾', cat:'staples',
-    name:{en:'Aashirvaad Atta 10kg',hi:'Aashirvaad Atta 10kg'},
-    match:['atta','aashirvaad','aata','flour','gehu'], pack:'bag · 10kg', unit:'bag',
-    offers:{bigbasket:{price:485,stock:true}, metro:{price:498,stock:true}, hyper:{price:492,stock:true}, jiomart:{price:505,stock:true}},
-    alts:['fortune'] },
+    name:{en:'Aashirvaad Atta',hi:'Aashirvaad Atta'},
+    match:['atta','aashirvaad','aata','flour','gehu'], alts:['fortune'],
+    sizes:[
+      {label:'10kg', pack:'bag · 10kg', unit:'bag', offers:{bigbasket:{price:485,stock:true}, metro:{price:498,stock:true}, hyper:{price:492,stock:true}, jiomart:{price:505,stock:true}}},
+      {label:'5kg',  pack:'bag · 5kg',  unit:'bag', offers:{bigbasket:{price:255,stock:true}, metro:{price:262,stock:true}, hyper:{price:258,stock:true}, jiomart:{price:268,stock:true}}},
+    ] },
   {id:'fortune', emoji:'🌾', cat:'staples',
     name:{en:'Fortune Chakki Atta 10kg',hi:'Fortune Chakki Atta'},
     match:['fortune'], pack:'bag · 10kg', unit:'bag',
@@ -337,17 +348,28 @@ const CATALOG = [
     match:['salt','namak','tata salt'], pack:'pack · 10×1kg', unit:'pack',
     offers:{bigbasket:{price:235,stock:true}, metro:{price:245,stock:true}, hyper:{price:240,stock:true}} },
   {id:'oil', emoji:'🛢️', cat:'staples',
-    name:{en:'Fortune Sunflower Oil 15L',hi:'Fortune Sunflower Oil 15L'},
-    match:['oil','tel','sunflower','refined'], pack:'tin · 15L', unit:'tin',
-    offers:{hyper:{price:1860,stock:true}, metro:{price:1920,stock:true}, bigbasket:{price:1890,stock:true}, grain:{price:1845,stock:true}} },
+    name:{en:'Fortune Sunflower Oil',hi:'Fortune Sunflower Oil'},
+    match:['oil','tel','sunflower','refined'],
+    sizes:[
+      {label:'15L tin', pack:'tin · 15L',     unit:'tin',  offers:{hyper:{price:1860,stock:true}, metro:{price:1920,stock:true}, bigbasket:{price:1890,stock:true}, grain:{price:1845,stock:true}}},
+      {label:'5L jar',  pack:'jar · 5L',      unit:'jar',  offers:{hyper:{price:640,stock:true}, metro:{price:660,stock:true}, bigbasket:{price:648,stock:true}, grain:{price:632,stock:true}}},
+      {label:'1L',      pack:'case · 12×1L',  unit:'case', offers:{hyper:{price:1500,stock:true}, metro:{price:1560,stock:true}, bigbasket:{price:1530,stock:true}, grain:{price:1490,stock:true}}},
+    ] },
   {id:'rice', emoji:'🍚', cat:'staples',
-    name:{en:'India Gate Basmati 25kg',hi:'India Gate Basmati 25kg'},
-    match:['rice','chawal','basmati','chaval'], pack:'bag · 25kg', unit:'bag',
-    offers:{grain:{price:2250,stock:true}, hyper:{price:2310,stock:true}, metro:{price:2340,stock:true}, bigbasket:{price:2290,stock:true}} },
+    name:{en:'India Gate Basmati',hi:'India Gate Basmati'},
+    match:['rice','chawal','basmati','chaval'],
+    sizes:[
+      {label:'25kg', pack:'bag · 25kg', unit:'bag', offers:{grain:{price:2250,stock:true}, hyper:{price:2310,stock:true}, metro:{price:2340,stock:true}, bigbasket:{price:2290,stock:true}}},
+      {label:'10kg', pack:'bag · 10kg', unit:'bag', offers:{grain:{price:920,stock:true}, hyper:{price:945,stock:true}, metro:{price:960,stock:true}, bigbasket:{price:935,stock:true}}},
+    ] },
   {id:'tea', emoji:'🫖', cat:'beverages',
-    name:{en:'Tata Tea Gold 1kg',hi:'Tata Tea Gold 1kg'},
-    match:['tea','chai','chai patti','patti'], pack:'pack · 1kg', unit:'pack',
-    offers:{metro:{price:545,stock:true}, hyper:{price:555,stock:true}, jiomart:{price:535,stock:true}, bigbasket:{price:540,stock:true}} },
+    name:{en:'Tata Tea Gold',hi:'Tata Tea Gold'},
+    match:['tea','chai','chai patti','patti'],
+    sizes:[
+      {label:'1kg',   pack:'pack · 1kg',   unit:'pack', offers:{metro:{price:545,stock:true}, hyper:{price:555,stock:true}, jiomart:{price:535,stock:true}, bigbasket:{price:540,stock:true}}},
+      {label:'500g',  pack:'pack · 500g',  unit:'pack', offers:{metro:{price:285,stock:true}, hyper:{price:290,stock:true}, jiomart:{price:280,stock:true}, bigbasket:{price:283,stock:true}}},
+      {label:'250g',  pack:'pack · 250g',  unit:'pack', offers:{metro:{price:150,stock:true}, hyper:{price:153,stock:true}, jiomart:{price:147,stock:true}, bigbasket:{price:149,stock:true}}},
+    ] },
 ];
 
 // digital ledger: items the system "knows" are low (hybrid inventory)
@@ -408,9 +430,13 @@ const PAYABLES = [
    ========================================================= */
 const WEIGHTS = {price:0.60, eta:0.25, onTime:0.15}; // price 60%, delivery & reliability 40%
 
-function scoreOffers(product){
+// size accessors — products may have multiple pack sizes (ml/kg/L)
+function sizesOf(p){return p.sizes||[{label:p.unit,pack:p.pack,unit:p.unit,offers:p.offers}]}
+function sizeOf(p,idx){const a=sizesOf(p);return a[Math.min(idx||0,a.length-1)]}
+
+function scoreOffers(offers){
   // gather in-stock offers
-  const rows = Object.entries(product.offers)
+  const rows = Object.entries(offers)
     .filter(([s,o])=>o.stock && o.price>0)
     .map(([s,o])=>({sup:s, price:o.price, etaH:SUPPLIERS[s].etaH, onTime:SUPPLIERS[s].onTime}));
   if(!rows.length) return [];
@@ -432,30 +458,21 @@ function scoreOffers(product){
    ========================================================= */
 let cart = [];        // [{productId, qty}]
 
-function addToCart(productId, qty){
+function addToCart(productId, qty, sizeIdx){
+  sizeIdx = sizeIdx||0;
   const ex = cart.find(c=>c.productId===productId);
-  if(ex) ex.qty += qty; else cart.push({productId, qty});
+  if(ex){ ex.qty += qty; } else cart.push({productId, qty, sizeIdx});
 }
 function findProduct(id){return CATALOG.find(p=>p.id===id)}
 
-// build the winning basket: each line gets its best-scored supplier
+// build the winning basket: each line gets its best-scored supplier for the chosen size
 function buildBasket(){
   return cart.map(c=>{
     const p=findProduct(c.productId);
-    const ranked=scoreOffers(p);
-    return {product:p, qty:c.qty, ranked, winner:ranked[0]};
+    const size=sizeOf(p,c.sizeIdx);
+    const ranked=scoreOffers(size.offers);
+    return {product:p, qty:c.qty, sizeIdx:c.sizeIdx||0, size, ranked, winner:ranked[0]};
   }).filter(l=>l.winner);
-}
-function basketTotal(basket){return basket.reduce((s,l)=>s+l.winner.price*l.qty,0)}
-function basketSplit(basket){
-  const m={};
-  basket.forEach(l=>{
-    const s=l.winner.sup;
-    if(!m[s])m[s]={amt:0,items:[]};
-    m[s].amt+=l.winner.price*l.qty;
-    m[s].items.push(l.product.name[lang]);
-  });
-  return m;
 }
 
 /* =========================================================
@@ -658,7 +675,7 @@ function renderBasket(){
   const singleTotals={};
   Object.keys(SUPPLIERS).forEach(s=>{
     let ok=true,t=0;
-    basket.forEach(l=>{const o=l.product.offers[s];if(o&&o.stock&&o.price>0)t+=o.price*l.qty;else ok=false});
+    basket.forEach(l=>{const o=l.size.offers[s];if(o&&o.stock&&o.price>0)t+=o.price*l.qty;else ok=false});
     if(ok)singleTotals[s]=t;
   });
   const bestSingle=Object.values(singleTotals).length?Math.min(...Object.values(singleTotals)):total;
@@ -670,7 +687,7 @@ function renderBasket(){
     const ranked=l.ranked;
     const isCheap=l.winner.price===Math.min(...ranked.map(r=>r.price));
     const isFast=l.winner.etaH===Math.min(...ranked.map(r=>r.etaH));
-    const tag=isCheap?`<span class="sv">₹${(l.winner.price/24<10?l.winner.price:Math.round(l.winner.price/qtyUnit(l.product))).toLocaleString('en-IN')}… ${L[lang].cheapest}</span>`
+    const tag=isCheap?`<span class="sv">${L[lang].cheapest}</span>`
               :isFast?`<span class="sv">${L[lang].fast} · ${etaLabel(sup.etaH)}</span>`:'';
     const canSwap=(l.product.alts&&l.product.alts.length)||ranked.length>1;
     const schemeChip=l.sch&&l.sch.qualifies?`<span class="schemechip">🎁 ${l.sch.note}</span>`:'';
@@ -679,11 +696,17 @@ function renderBasket(){
     const amtHtml=l.discount>0
       ? `<div class="amt">₹${l.lineAmt.toLocaleString('en-IN')}</div><small style="color:var(--wa-sub);text-decoration:line-through;font-size:11px">₹${l.gross.toLocaleString('en-IN')}</small>`
       : `<div class="amt">₹${l.gross.toLocaleString('en-IN')}</div>`;
+    const allSizes=sizesOf(l.product);
+    const sizeSel=allSizes.length>1
+      ? `<div class="sizes">${allSizes.map((sz,si)=>`<button class="sizebtn ${si===l.sizeIdx?'on':''}" onclick="chSize(${i},${si})">${sz.label}</button>`).join('')}</div>`
+      : '';
+    const sizeLbl=allSizes.length>1?` <span style="color:var(--wa-sub);font-weight:500">· ${l.size.label}</span>`:'';
     return `<div class="item" data-i="${i}">
       <div class="ic">${l.product.emoji}</div>
       <div class="info">
-        <div class="nm">${l.product.name[lang]} <span class="sup-pill ${sup.cls}">${sup.name}</span>${trendChip}</div>
-        <div class="meta">${l.qty} ${l.product.unit}${l.qty>1?'s':''} · ${l.product.pack} ${tag?'· '+tag:''}${schemeChip}</div>
+        <div class="nm">${l.product.name[lang]}${sizeLbl} <span class="sup-pill ${sup.cls}">${sup.name}</span>${trendChip}</div>
+        <div class="meta">${l.qty} ${l.size.unit}${l.qty>1?'s':''} · ${l.size.pack} ${tag?'· '+tag:''}${schemeChip}</div>
+        ${sizeSel}
         <div class="rowctl">
           <div class="step">
             <button onclick="chQty(${i},-1)">−</button><span class="q">${l.qty}</span><button onclick="chQty(${i},1)">+</button>
@@ -720,13 +743,17 @@ function renderBasket(){
   </div>`);
   chat.appendChild(card);basketCardEl=card;scroll();
 }
-function qtyUnit(p){return p.unit==='case'||p.unit==='pack'?24:1}
-
 /* edits */
 function chQty(i,d){
   const basket=buildBasket(); const line=basket[i]; if(!line)return;
   const c=cart.find(x=>x.productId===line.product.id);
   c.qty=Math.max(1,c.qty+d);
+  renderBasket();
+}
+function chSize(i,si){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  const c=cart.find(x=>x.productId===line.product.id);
+  c.sizeIdx=si;
   renderBasket();
 }
 function removeLine(i){
@@ -741,10 +768,11 @@ function openSwap(i){
   // alternatives = sibling products in alts list + this product's other suppliers
   const altProducts=(p.alts||[]).map(findProduct).filter(Boolean);
   const options=[];
-  // other suppliers of same product
-  line.ranked.slice(1).forEach(r=>options.push({pid:p.id, sup:r.sup, price:r.price, score:r.score, name:p.name[lang], emoji:p.emoji, etaH:r.etaH}));
-  // alternative products (their best offer)
-  altProducts.forEach(ap=>{const rk=scoreOffers(ap); if(rk[0])options.push({pid:ap.id, sup:rk[0].sup, price:rk[0].price, score:rk[0].score, name:ap.name[lang], emoji:ap.emoji, etaH:rk[0].etaH});});
+  // other suppliers of same product (same chosen size)
+  const curLabel=line.size.label;
+  line.ranked.slice(1).forEach(r=>options.push({pid:p.id, sup:r.sup, price:r.price, score:r.score, name:p.name[lang]+(sizesOf(p).length>1?' '+curLabel:''), emoji:p.emoji, etaH:r.etaH, unit:line.size.unit}));
+  // alternative products (their best offer, default size)
+  altProducts.forEach(ap=>{const sz=sizeOf(ap,0); const rk=scoreOffers(sz.offers); if(rk[0])options.push({pid:ap.id, sup:rk[0].sup, price:rk[0].price, score:rk[0].score, name:ap.name[lang]+(sizesOf(ap).length>1?' '+sz.label:''), emoji:ap.emoji, etaH:rk[0].etaH, unit:sz.unit});});
   options.sort((a,b)=>b.score-a.score);
 
   const rows=options.map((o,k)=>{
@@ -752,7 +780,7 @@ function openSwap(i){
     return `<div class="alt ${k===0?'best':''}" onclick="doSwap(${i},'${o.pid}')">
       <div class="ic">${o.emoji}</div>
       <div class="info"><div class="nm">${o.name} ${k===0?'<span class="tag">BEST</span>':''}</div>
-        <div class="meta">${sup.name} · ₹${o.price.toLocaleString('en-IN')}/${findProduct(o.pid).unit} · ${etaLabel(o.etaH)}</div></div>
+        <div class="meta">${sup.name} · ₹${o.price.toLocaleString('en-IN')}/${o.unit} · ${etaLabel(o.etaH)}</div></div>
       <div class="px">₹${(o.price*line.qty).toLocaleString('en-IN')}</div>
     </div>`;
   }).join('');
@@ -806,7 +834,7 @@ async function confirmPay(total){
   const oid=newOrderId();
   // group basket lines by supplier with full item detail
   const bySup={};
-  basket.forEach(l=>{const s=l.winner.sup;if(!bySup[s])bySup[s]=[];bySup[s].push({emoji:l.product.emoji, name:l.product.name[lang], qty:l.qty, unit:l.product.unit, amt:l.lineAmt, free:(l.sch&&l.sch.qualifies&&l.sch.bonusValue)?l.sch.note:''});});
+  basket.forEach(l=>{const s=l.winner.sup;if(!bySup[s])bySup[s]=[];bySup[s].push({emoji:l.product.emoji, name:l.product.name[lang]+(sizesOf(l.product).length>1?' '+l.size.label:''), qty:l.qty, unit:l.size.unit, amt:l.lineAmt, free:(l.sch&&l.sch.qualifies&&l.sch.bonusValue)?l.sch.note:''});});
   const shipments=Object.entries(split).map(([s,d])=>({sup:s, amt:d.amt, items:Object.keys(bySup).includes(s)?bySup[s]:[], etaH:SUPPLIERS[s].etaH, status:'placed', placedAt:Date.now()}));
   const order={id:oid, ts:Date.now(), total, shipments};
   const orders=loadOrders(); orders.unshift(order); saveOrders(orders);
@@ -922,11 +950,11 @@ async function pushStockAlert(){
         <div class="meta">Stock: ${s.onHand} ${p.unit} · ~${days} din bache · ${s.velocity}/week bikta hai</div></div>
       <div class="rt"><div class="big">+${s.suggest} ${p.unit}</div><small>suggested</small></div></div>`;
   }).join('');
-  await botSay('🔔 <b>Stock alert</b> — kuch items threshold ke neeche aa gaye. Maine order draft taiyaar kar diya hai.',1000);
+  await botSay('🔔 <b>Stock alert</b> — kuch items threshold ke neeche aa gaye. Maine poori order list taiyaar kar di hai.',1000);
   const card=el(`<div class="fc fadein">
     <div class="fc-h alert"><span class="fi">📦</span><div><div class="ft">${low.length} items reorder karne hain</div><div class="fs">Aapke sales se calculate kiya · ek tap mein approve</div></div></div>
     ${rows}
-    <div class="fc-foot"><button class="btn pay" onclick="approveDraft()">✅ Draft approve & best rate dhoondo</button></div>
+    <div class="fc-foot"><button class="btn pay" onclick="approveDraft()">✅ Order approve karke best rate dhoondo</button></div>
   </div>`);
   chat.appendChild(card);scroll();
   homeMenu();
@@ -944,7 +972,7 @@ function renderSchemes(){
   // typical order qty assumption per scheme for "savings if you order" illustration
   const rows=SCHEMES.map(s=>{
     const p=findProduct(s.pid); const sup=SUPPLIERS[s.sup];
-    const unit=p.offers[s.sup]?p.offers[s.sup].price:0;
+    const so=sizeOf(p,0).offers; const unit=so[s.sup]?so[s.sup].price:0;
     let saveTxt,sub;
     if(s.type==='qty'){const sets=1; saveTxt=`₹${(s.free*unit).toLocaleString('en-IN')}`; sub=`${s.label} · har ${s.buy} pe ${s.free} free`;}
     else{const q=s.minQty; saveTxt=`₹${Math.round(unit*q*s.pct/100).toLocaleString('en-IN')}`; sub=`${s.label}`;}
@@ -953,7 +981,7 @@ function renderSchemes(){
         <div class="meta">${sub}</div></div>
       <div class="rt"><div class="big save">${saveTxt}</div><small>bachat</small></div></div>`;
   }).join('');
-  const totalSave=SCHEMES.reduce((t,s)=>{const unit=findProduct(s.pid).offers[s.sup]?.price||0;return t+(s.type==='qty'?s.free*unit:Math.round(unit*s.minQty*s.pct/100))},0);
+  const totalSave=SCHEMES.reduce((t,s)=>{const unit=sizeOf(findProduct(s.pid),0).offers[s.sup]?.price||0;return t+(s.type==='qty'?s.free*unit:Math.round(unit*s.minQty*s.pct/100))},0);
   const card=el(`<div class="fc fadein">
     <div class="fc-h money"><span class="fi">🎁</span><div><div class="ft">${SCHEMES.length} schemes aapke SKUs pe</div><div class="fs">Distributors offer karte hain par log miss kar dete hain</div></div></div>
     ${rows}
@@ -996,7 +1024,7 @@ function renderPriceWatch(){
     const p=findProduct(pid); if(!p)return;
     const worst=Object.entries(sups).sort((a,b)=>b[1]-a[1])[0]; // biggest hike
     if(worst[1]<=0)return;
-    const ranked=scoreOffers(p); const best=ranked[0];
+    const ranked=scoreOffers(sizeOf(p,0).offers); const best=ranked[0];
     const cheaper=best.sup!==worst[0];
     rows.push(`<div class="fl"><div class="ic">${p.emoji}</div>
       <div class="info"><div class="nm">${p.name[lang]}</div>
