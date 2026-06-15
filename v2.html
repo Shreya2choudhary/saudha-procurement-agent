@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saudha v2 — Kirana Procurement Agent</title>
+<style>
+  :root{
+    --wa-bg:#0b141a; --wa-panel:#111b21; --wa-chat:#0b141a;
+    --wa-in:#202c33; --wa-out:#005c4b; --wa-green:#00a884;
+    --wa-text:#e9edef; --wa-sub:#8696a0; --wa-line:#222d34;
+    --wa-accent:#53bdeb; --wa-warn:#f0b232;
+    --card:#1f2c34; --chip:#2a3942;
+    --phone-bg:#0b141a; --bub-shadow:rgba(0,0,0,.2);
+  }
+  [data-theme="light"]{
+    --wa-bg:#efeae2; --wa-panel:#f0f2f5; --wa-chat:#efeae2;
+    --wa-in:#ffffff; --wa-out:#d9fdd3; --wa-green:#00a884;
+    --wa-text:#111b21; --wa-sub:#667781; --wa-line:#e3e3e3;
+    --wa-accent:#027eb5; --wa-warn:#b88207;
+    --card:#ffffff; --chip:#f0f2f5;
+    --phone-bg:#efeae2; --bub-shadow:rgba(0,0,0,.08);
+  }
+  [data-theme="light"] .out .bub{color:#111b21}
+  [data-theme="light"] .out .bub .t{color:#667781}
+  [data-theme="light"] .bub b{color:#000}
+  [data-theme="light"] .out .bub b{color:#000}
+  [data-theme="light"] .rec-top .ttl,[data-theme="light"] .succ .ttl,[data-theme="light"] .succ .sub,[data-theme="light"] .pay-head .ttl{color:#fff}
+  [data-theme="light"] .item .nm,[data-theme="light"] .item .px .amt,[data-theme="light"] .total .val,[data-theme="light"] .alt .nm,[data-theme="light"] .alt .px,[data-theme="light"] .step .q{color:#111b21}
+  [data-theme="light"] .lang-toggle,[data-theme="light"] .ico-btn{background:#e9edef}
+  [data-theme="light"] .sys{background:#d4e8d0;color:#54656f}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; background:#000; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; display:flex; justify-content:center; min-height:100vh}
+  .phone{width:430px; max-width:100vw; height:100vh; max-height:932px; background:var(--wa-chat); display:flex; flex-direction:column; position:relative; overflow:hidden;
+    background-image:linear-gradient(rgba(11,20,26,.96),rgba(11,20,26,.96)),url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40' fill='%23ffffff' fill-opacity='0.02'/%3E%3C/svg%3E")}
+
+  .hdr{background:var(--wa-panel); display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--wa-line); flex-shrink:0}
+  .ava{width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#00a884,#005c4b); display:flex; align-items:center; justify-content:center; font-size:20px}
+  .hdr-name{color:var(--wa-text); font-weight:600; font-size:16px; line-height:1.1}
+  .hdr-sub{color:var(--wa-green); font-size:12px}
+  .hdr-tools{margin-left:auto; display:flex; gap:6px; align-items:center}
+  .lang-toggle{display:flex; background:var(--wa-in); border-radius:20px; padding:3px; gap:2px}
+  .lang-toggle button{border:none; background:transparent; color:var(--wa-sub); font-size:12px; font-weight:600; padding:5px 9px; border-radius:16px; cursor:pointer}
+  .lang-toggle button.on{background:var(--wa-green); color:#04231d}
+  .ico-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--wa-in);color:var(--wa-sub);font-size:15px;cursor:pointer}
+  .ico-btn.on{background:var(--wa-accent);color:#04231d}
+
+  .chat{flex:1; overflow-y:auto; padding:14px 12px 4px; display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth}
+  .chat::-webkit-scrollbar{width:0}
+  .chat > *{flex-shrink:0}
+  .row{display:flex; max-width:88%}
+  .row.in{align-self:flex-start}
+  .row.out{align-self:flex-end}
+  .bub{padding:8px 10px 7px; border-radius:10px; color:var(--wa-text); font-size:14.5px; line-height:1.42; position:relative; box-shadow:0 1px 1px rgba(0,0,0,.2); word-wrap:break-word}
+  .in .bub{background:var(--wa-in); border-top-left-radius:2px}
+  .out .bub{background:var(--wa-out); border-top-right-radius:2px}
+  .bub .t{display:block; text-align:right; font-size:10.5px; color:var(--wa-sub); margin-top:3px}
+  .out .bub .t{color:#a5d6c9}
+  .bub b{color:#fff; font-weight:600}
+  .sys{align-self:center; background:rgba(255,255,255,.06); color:var(--wa-sub); font-size:11.5px; padding:4px 12px; border-radius:8px; text-align:center; max-width:92%}
+
+  .typing{display:flex; gap:3px; padding:11px 14px; background:var(--wa-in); border-radius:10px; border-top-left-radius:2px; align-self:flex-start}
+  .typing span{width:7px; height:7px; background:var(--wa-sub); border-radius:50%; animation:bl 1.2s infinite}
+  .typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+  @keyframes bl{0%,60%,100%{opacity:.3; transform:translateY(0)}30%{opacity:1; transform:translateY(-4px)}}
+
+  .disc{align-self:stretch; background:var(--card); border:1px solid var(--wa-line); border-radius:12px; padding:12px 13px; margin:2px 0}
+  .disc-h{display:flex; align-items:center; gap:8px; color:var(--wa-accent); font-size:13px; font-weight:600; margin-bottom:10px}
+  .disc-h .spin{width:14px;height:14px;border:2px solid var(--wa-accent); border-top-color:transparent; border-radius:50%; animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .disc-row{display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--wa-sub); padding:5px 0}
+  .disc-row .ok{color:var(--wa-green); font-weight:700}
+  .disc-row .sup{color:var(--wa-text); font-weight:600; min-width:78px}
+  .disc-bar{flex:1; height:5px; background:#2a3942; border-radius:3px; overflow:hidden}
+  .disc-bar i{display:block; height:100%; background:var(--wa-green); width:0; transition:width .8s}
+
+  .rec{align-self:stretch; background:var(--card); border:1px solid var(--wa-line); border-radius:12px; overflow:hidden; margin:2px 0}
+  .rec-top{background:linear-gradient(135deg,#0b3d36,#0a564a); padding:12px 14px}
+  .rec-top .ttl{color:#fff; font-weight:700; font-size:15px}
+  .rec-top .sub{color:#a5d6c9; font-size:12px; margin-top:2px}
+  .item{display:flex; align-items:center; gap:11px; padding:11px 13px; border-bottom:1px solid var(--wa-line)}
+  .item:last-child{border-bottom:none}
+  .item .ic{width:38px; height:38px; border-radius:9px; background:var(--chip); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0}
+  .item .info{flex:1; min-width:0}
+  .item .nm{color:var(--wa-text); font-size:14px; font-weight:600}
+  .item .meta{color:var(--wa-sub); font-size:11.5px; margin-top:2px}
+  .item .meta .sv{color:var(--wa-green)}
+  .item .px{text-align:right; flex-shrink:0}
+  .item .px .amt{color:#fff; font-weight:700; font-size:14px}
+  /* solid brand "logo" chips — recognition over reading */
+  .sup-pill{display:inline-flex; align-items:center; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; margin-left:6px; vertical-align:middle; color:#fff; letter-spacing:.2px}
+  .p-metro{background:#1a4a8a}
+  .p-hyper{background:#e67817}
+  .p-bb{background:#6aa31f}
+  .p-grain{background:#7b4bc4}
+  .p-jio{background:#e23744}
+
+  /* qty stepper + row actions */
+  .rowctl{display:flex; align-items:center; gap:6px; margin-top:7px}
+  .step{display:flex; align-items:center; background:var(--chip); border-radius:7px; overflow:hidden}
+  .step button{width:26px;height:26px;border:none;background:transparent;color:var(--wa-text);font-size:16px;cursor:pointer}
+  .step .q{min-width:30px;text-align:center;color:#fff;font-size:13px;font-weight:600}
+  .mini{font-size:11px;border:none;background:transparent;cursor:pointer;padding:4px 6px;border-radius:6px;font-weight:600}
+  .mini.swap{color:var(--wa-accent)}
+  .mini.rm{color:#ff8a8a}
+  .sizes{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+  .sizebtn{font-size:11px;border:1px solid var(--wa-line);background:transparent;color:var(--wa-sub);padding:3px 10px;border-radius:12px;cursor:pointer;font-weight:600}
+  .sizebtn.on{border-color:var(--wa-green);color:var(--wa-green);background:rgba(0,168,132,.1)}
+  .scoreflag{display:inline-block;font-size:9.5px;background:#16323a;color:var(--wa-accent);padding:1px 6px;border-radius:8px;margin-left:5px}
+
+  .why{padding:9px 13px; background:rgba(83,189,235,.07); font-size:11.5px; color:var(--wa-sub); line-height:1.5}
+  .why b{color:var(--wa-accent)}
+  .split{padding:11px 13px; border-top:1px solid var(--wa-line)}
+  .split-h{font-size:11px; color:var(--wa-sub); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px}
+  .split-row{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--wa-text); padding:3px 0}
+  .split-row .dot{width:8px; height:8px; border-radius:50%}
+  .split-row .amt{margin-left:auto; font-weight:600}
+  .split-row .eta{color:var(--wa-sub); font-size:11px}
+  .total{display:flex; align-items:center; padding:12px 13px; border-top:1px solid var(--wa-line); background:rgba(0,168,132,.06)}
+  .total .lbl{color:var(--wa-text); font-weight:600}
+  .total .lbl small{display:block; color:var(--wa-sub); font-weight:400; font-size:11px; margin-top:2px}
+  .total .val{margin-left:auto; color:#fff; font-weight:800; font-size:20px}
+  .acts{display:flex; gap:8px; padding:11px 13px; border-top:1px solid var(--wa-line)}
+  .btn{flex:1; border:none; padding:11px; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer}
+  .btn.pay{background:var(--wa-green); color:#04231d}
+  .btn.edit{background:var(--chip); color:var(--wa-text); flex:0 0 auto; padding:11px 16px}
+  .btn:disabled{opacity:.5}
+
+  /* scoreboard (stakeholder mode) */
+  .board{margin:6px 13px 0;border:1px dashed var(--wa-accent);border-radius:9px;padding:9px;background:rgba(83,189,235,.05)}
+  .board table{width:100%;border-collapse:collapse;font-size:11px}
+  .board th{color:var(--wa-accent);text-align:right;font-weight:600;padding:3px 4px;font-size:10px}
+  .board th:first-child{text-align:left}
+  .board td{color:var(--wa-text);text-align:right;padding:3px 4px;border-top:1px solid var(--wa-line)}
+  .board td:first-child{text-align:left;color:var(--wa-sub)}
+  .board td.win{color:var(--wa-green);font-weight:700}
+  .board .cap{font-size:10px;color:var(--wa-sub);margin-bottom:6px}
+
+  .swap{align-self:stretch; background:var(--card); border:1px solid var(--wa-accent); border-radius:12px; padding:12px 13px; margin:2px 0}
+  .swap-h{color:var(--wa-text); font-size:13px; font-weight:600; margin-bottom:3px}
+  .swap-sub{color:var(--wa-sub); font-size:11.5px; margin-bottom:11px}
+  .alt{display:flex; align-items:center; gap:10px; padding:9px; border:1px solid var(--wa-line); border-radius:9px; margin-bottom:7px; cursor:pointer; transition:.15s}
+  .alt:hover{border-color:var(--wa-green); background:rgba(0,168,132,.05)}
+  .alt .ic{width:34px;height:34px;border-radius:8px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:17px}
+  .alt .info{flex:1}
+  .alt .nm{color:var(--wa-text); font-size:13px; font-weight:600}
+  .alt .meta{color:var(--wa-sub); font-size:11px; margin-top:1px}
+  .alt .px{color:#fff; font-weight:700; font-size:13.5px}
+  .alt.best{border-color:var(--wa-green)}
+  .alt .tag{font-size:9px; background:var(--wa-green); color:#04231d; padding:1px 6px; border-radius:8px; font-weight:700}
+
+  .pay-card{align-self:stretch; background:var(--card); border:1px solid var(--wa-line); border-radius:12px; overflow:hidden; margin:2px 0}
+  .pay-head{padding:13px; text-align:center; border-bottom:1px solid var(--wa-line)}
+  .pay-head .ttl{color:#fff; font-weight:700; font-size:15px}
+  .pay-head .sub{color:var(--wa-sub); font-size:11.5px; margin-top:3px}
+  .pay-line{display:flex; align-items:center; gap:9px; padding:10px 13px; font-size:13px; color:var(--wa-text); border-bottom:1px solid var(--wa-line)}
+  .pay-line .dot{width:7px;height:7px;border-radius:50%}
+  .pay-line .amt{margin-left:auto; font-weight:600}
+  .pay-line small{color:var(--wa-sub);font-size:10.5px;display:block}
+  .pay-method{display:flex; align-items:center; gap:10px; padding:12px 13px; background:rgba(255,255,255,.03)}
+  .pay-method .vi{font-size:20px}
+  .pay-method .txt{flex:1; font-size:12.5px; color:var(--wa-text)}
+  .pay-method .txt small{display:block; color:var(--wa-sub); font-size:10.5px}
+  .pay-method .chk{color:var(--wa-green); font-size:11px; font-weight:600}
+
+  .succ{align-self:stretch; background:linear-gradient(135deg,#0b3d36,#0a564a); border-radius:12px; padding:18px 14px; text-align:center; margin:2px 0}
+  .succ .big{width:54px;height:54px;border-radius:50%;background:var(--wa-green);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px}
+  .succ .ttl{color:#fff; font-weight:700; font-size:16px}
+  .succ .sub{color:#a5d6c9; font-size:12.5px; margin-top:4px; line-height:1.5}
+  .track{margin-top:12px; display:flex; flex-direction:column; gap:7px; text-align:left}
+  .track-row{display:flex; align-items:center; gap:9px; background:rgba(0,0,0,.2); padding:8px 11px; border-radius:9px; font-size:12px; color:#e9edef}
+  .track-row .amt{margin-left:auto; color:#a5d6c9; font-size:11px}
+  .track-row .stat{margin-left:auto; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px}
+  .track-row .amt2{color:#a5d6c9; font-size:11px; margin-left:8px}
+  .st-placed{background:#4a3d12;color:#f5d76e}
+  .st-confirmed{background:#16323a;color:#7ccadb}
+  .st-packed{background:#3a2d4a;color:#c79bff}
+  .st-out{background:#0a564a;color:#7ed492}
+  .order-id{font-family:monospace;font-size:11px;color:#a5d6c9;margin-top:4px}
+  .ord{align-self:stretch;background:var(--card);border:1px solid var(--wa-line);border-radius:12px;overflow:hidden;margin:2px 0}
+  .ord-h{padding:11px 13px;border-bottom:1px solid var(--wa-line);display:flex;align-items:center;gap:8px}
+  .ord-h .oid{font-family:monospace;font-size:12px;color:var(--wa-text);font-weight:600}
+  .ord-h .when{color:var(--wa-sub);font-size:11px;margin-left:auto}
+  .ord-body{padding:9px 13px}
+  .ord-line{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--wa-text);padding:4px 0}
+  .ord-line .dot{width:7px;height:7px;border-radius:50%}
+  .ord-foot{display:flex;align-items:center;padding:9px 13px;border-top:1px solid var(--wa-line);background:rgba(0,168,132,.06);font-size:12px;color:var(--wa-sub)}
+  .ord-foot b{color:var(--wa-text);margin-left:auto;font-size:14px}
+  .ord-line.tap{cursor:pointer;border-radius:8px;transition:.12s;padding:6px 6px}
+  .ord-line.tap:hover{background:rgba(255,255,255,.04)}
+  .ord-line .chev{color:var(--wa-sub);font-size:16px;margin-left:8px}
+  /* shipment status tracker */
+  .tk-head{padding:11px 13px 4px;font-size:11px;color:var(--wa-sub);text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--wa-line)}
+  .tracker{padding:6px 15px 14px}
+  .tk-step{display:flex;gap:11px;position:relative;padding-bottom:14px}
+  .tk-step:not(:last-child):before{content:'';position:absolute;left:9px;top:20px;bottom:-2px;width:2px;background:var(--wa-line)}
+  .tk-step.done:not(:last-child):before{background:var(--wa-green)}
+  .tk-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid var(--wa-line);color:transparent;z-index:1;background:var(--card)}
+  .tk-step.done .tk-dot{background:var(--wa-green);border-color:var(--wa-green);color:#04231d}
+  .tk-step.now .tk-dot{border-color:var(--wa-green);background:var(--card);color:var(--wa-green);box-shadow:0 0 0 4px rgba(0,168,132,.18);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(0,168,132,.18)}50%{box-shadow:0 0 0 7px rgba(0,168,132,.05)}}
+  .tk-t{color:var(--wa-text);font-size:13px;font-weight:600}
+  .tk-step.todo .tk-t{color:var(--wa-sub);font-weight:500}
+  .tk-d{color:var(--wa-sub);font-size:11px;margin-top:1px}
+  .tk-step.now .tk-d{color:var(--wa-green);font-weight:600}
+
+  .composer{background:var(--wa-panel); padding:8px 10px; display:flex; align-items:flex-end; gap:8px; border-top:1px solid var(--wa-line); flex-shrink:0}
+  .composer .ibox{flex:1; background:var(--wa-in); border-radius:22px; padding:9px 14px; color:var(--wa-text); font-size:14px; min-height:20px; max-height:90px; overflow-y:auto; outline:none}
+  .composer .ibox:empty:before{content:attr(data-ph); color:var(--wa-sub)}
+  .composer .send{width:42px; height:42px; border-radius:50%; background:var(--wa-green); border:none; display:flex; align-items:center; justify-content:center; font-size:19px; cursor:pointer; flex-shrink:0; color:#04231d}
+
+  .quick{display:flex; gap:7px; flex-wrap:wrap; padding:0 12px 8px; justify-content:flex-end}
+  .qbtn{background:var(--wa-in); border:1px solid var(--wa-green); color:var(--wa-green); font-size:12.5px; font-weight:600; padding:8px 13px; border-radius:18px; cursor:pointer; transition:.15s; text-align:left}
+  .qbtn:active{transform:scale(.95)}
+  .qbtn.ghost{border-color:var(--wa-line); color:var(--wa-sub)}
+
+  /* feature cards (stock / schemes / udhaar / price) */
+  .fc{align-self:stretch;background:var(--card);border:1px solid var(--wa-line);border-radius:12px;overflow:hidden;margin:2px 0}
+  .fc-h{padding:12px 13px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--wa-line)}
+  .fc-h .fi{font-size:18px}
+  .fc-h .ft{color:#fff;font-weight:700;font-size:14px}
+  .fc-h .fs{color:var(--wa-sub);font-size:11px;margin-top:1px}
+  .fc-h.alert{background:linear-gradient(135deg,#4a3d12,#3a2e0a)}
+  .fc-h.money{background:linear-gradient(135deg,#0a564a,#0b3d36)}
+  .fc-h.udh{background:linear-gradient(135deg,#3a1d4a,#2a1438)}
+  .fc-h.price{background:linear-gradient(135deg,#16323a,#0f2329)}
+  .fc-h.alert .ft,.fc-h.money .ft,.fc-h.udh .ft,.fc-h.price .ft{color:#fff}
+  .fl{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--wa-line)}
+  .fl:last-of-type{border-bottom:none}
+  .fl .ic{width:34px;height:34px;border-radius:8px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .fl .ic.prod{width:44px;height:44px;border-radius:10px;background:#fff;font-size:25px}
+  .fl .logo{font-size:10px;font-weight:800;color:#fff;padding:5px 9px;border-radius:7px;min-width:76px;text-align:center;letter-spacing:.2px;flex-shrink:0}
+  .fl .info{flex:1;min-width:0}
+  .fl .nm{color:var(--wa-text);font-size:13.5px;font-weight:600}
+  .fl .meta{color:var(--wa-sub);font-size:11px;margin-top:2px}
+  .fl .meta .up{color:#ff8a8a;font-weight:700}
+  .fl .meta .dn{color:#7ed492;font-weight:700}
+  .fl .meta .save{color:var(--wa-green);font-weight:700}
+  .fl .rt{text-align:right;flex-shrink:0}
+  .fl .rt .big{color:#fff;font-weight:700;font-size:13.5px}
+  .fl .rt small{color:var(--wa-sub);font-size:10.5px;display:block}
+  .badge{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px}
+  .b-over{background:#4a1d1d;color:#ff9b9b}
+  .b-due{background:#4a3d12;color:#f5d76e}
+  .b-ok{background:#16323a;color:#7ccadb}
+  .b-scheme{background:#0a564a;color:#7ed492}
+  .fc-foot{display:flex;gap:8px;padding:11px 13px;border-top:1px solid var(--wa-line)}
+  .schemechip{display:inline-block;font-size:10px;font-weight:700;background:#0a564a;color:#9be8c6;padding:1px 7px;border-radius:9px;margin-left:5px}
+  .trendchip{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:9px;margin-left:5px}
+  .t-up{background:#3a1414;color:#ff8a8a}
+  .nudge{padding:8px 13px;background:rgba(0,168,132,.08);font-size:11.5px;color:#9be8c6;border-top:1px solid var(--wa-line)}
+  .nudge b{color:#fff}
+  .fc-sec{padding:9px 13px 4px;font-size:10.5px;font-weight:700;color:var(--wa-sub);text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--wa-line);background:rgba(255,255,255,.02)}
+
+  /* ===== V2 product-card + offer-stack (QuickCompare-style) ===== */
+  .pcard{background:var(--card);border:1px solid var(--wa-line);border-radius:14px;overflow:hidden;margin:7px 0}
+  .pc-top{display:flex;align-items:center;gap:12px;padding:12px 13px 10px}
+  .pc-img{width:52px;height:52px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0}
+  .pc-name{flex:1;min-width:0}
+  .pc-name .t1{color:var(--wa-text);font-size:15px;font-weight:700;line-height:1.2}
+  .pc-name .t2{color:var(--wa-sub);font-size:12px;margin-top:2px}
+  .pc-step{display:flex;align-items:center;background:var(--chip);border-radius:9px;overflow:hidden;flex-shrink:0}
+  .pc-step button{width:30px;height:30px;border:none;background:transparent;color:var(--wa-text);font-size:18px;cursor:pointer}
+  .pc-step .q{min-width:26px;text-align:center;color:#fff;font-size:14px;font-weight:700}
+  /* offer rows */
+  .offers{padding:2px 11px 6px;display:flex;flex-direction:column;gap:7px}
+  .offer{display:flex;align-items:center;gap:11px;padding:9px 11px;border:1.5px solid var(--wa-line);border-radius:11px;cursor:pointer;transition:.12s;background:rgba(255,255,255,.015)}
+  .offer:hover{border-color:var(--wa-sub)}
+  .offer.win{border-color:var(--wa-green);background:rgba(0,168,132,.07)}
+  .offer .logo{font-size:10px;font-weight:800;color:#fff;padding:4px 8px;border-radius:6px;min-width:74px;text-align:center;letter-spacing:.2px}
+  .offer .od{flex:1;min-width:0}
+  .offer .od .pk{color:var(--wa-text);font-size:12.5px;font-weight:600}
+  .offer .od .dl{color:var(--wa-sub);font-size:11px;margin-top:2px;display:flex;align-items:center;gap:4px}
+  .offer .opx{text-align:right;flex-shrink:0}
+  .offer .opx .mrp{color:var(--wa-sub);font-size:11px;text-decoration:line-through}
+  .offer .opx .amt{color:#fff;font-size:16px;font-weight:800;line-height:1.1}
+  .offer .pick{position:absolute}
+  .pickbadge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:800;background:var(--wa-green);color:#04231d;padding:2px 7px;border-radius:7px;margin-left:6px;vertical-align:middle}
+  .offer.dim{opacity:.6}
+  .moreoff{text-align:center;color:var(--wa-accent);font-size:11.5px;font-weight:600;padding:4px;cursor:pointer}
+  .pc-foot{display:flex;align-items:center;gap:6px;padding:9px 12px;border-top:1px solid var(--wa-line);flex-wrap:wrap}
+  .pc-foot .sizes2{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+  .pc-mini{font-size:11px;border:none;background:transparent;cursor:pointer;padding:5px 7px;border-radius:7px;font-weight:600}
+  .pc-mini.rm{color:#ff8a8a}
+  /* hero summary strip */
+  .vhero{display:flex;align-items:center;gap:12px;padding:12px 14px;background:linear-gradient(135deg,#0b3d36,#0a564a);border-radius:14px;margin:7px 0}
+  .vhero .vh-l{flex:1}
+  .vhero .vh-l .a{color:#a5d6c9;font-size:11.5px}
+  .vhero .vh-l .b{color:#fff;font-size:15px;font-weight:700;margin-top:1px}
+  .vhero .vh-save{text-align:right}
+  .vhero .vh-save .s1{color:#7ed492;font-size:18px;font-weight:800}
+  .vhero .vh-save .s2{color:#a5d6c9;font-size:10.5px}
+
+  .fadein{animation:pop .25s ease}
+  @keyframes pop{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="hdr">
+    <div class="ava">🛒</div>
+    <div>
+      <div class="hdr-name">Saudha</div>
+      <div class="hdr-sub" id="status">online</div>
+    </div>
+    <div class="hdr-tools">
+      <button class="ico-btn" id="ordersbtn" title="My orders" onclick="showOrders()">📋</button>
+      <button class="ico-btn" id="themebtn" title="Switch light / dark" onclick="toggleTheme()">🌙</button>
+    </div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+  <div class="quick" id="quick"></div>
+
+  <div class="composer">
+    <div class="ibox" id="input" contenteditable="true" data-ph="Jo khatam ho raha hai likhein…"></div>
+    <button class="send" onclick="onSend()">➤</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1. DATA: suppliers + catalog with real per-supplier offers
+   ========================================================= */
+const SUPPLIERS = {
+  metro:    {name:'Metro',     cls:'p-metro', color:'#7cc4ff', onTime:0.93, etaH:15},  // delivers tomorrow morning
+  hyper:    {name:'HyperPure', cls:'p-hyper', color:'#f5a623', onTime:0.97, etaH:6},   // same day eve
+  bigbasket:{name:'BigBasket', cls:'p-bb',    color:'#7ed492', onTime:0.91, etaH:13},
+  grain:    {name:'Grain',     cls:'p-grain', color:'#c79bff', onTime:0.84, etaH:30},
+  jiomart:  {name:'JioMart',   cls:'p-jio',   color:'#ff9b9b', onTime:0.90, etaH:18},
+};
+const etaLabel = h => h<=8?'today by '+(12+h>=18?'6PM':((12+h)%12||12)+'PM') : h<=22?'tomorrow '+(h-14<=0?'7AM':(h-9)+'AM') : 'in 2 days';
+
+// Each product: keys to match free text, unit, pack desc, emoji, category, and offers per supplier {price=per pack, stock}
+const CATALOG = [
+  {id:'maggi', emoji:'🍜', cat:'noodles',
+    name:{en:'Maggi 2-Min Noodles',hi:'Maggi 2-Min Noodles'},
+    match:['maggi','noodle','noodles'], pack:'case · 24 pcs', unit:'case',
+    offers:{hyper:{price:264,stock:true}, metro:{price:276,stock:true}, bigbasket:{price:270,stock:true}, jiomart:{price:288,stock:true}, grain:{price:0,stock:false}},
+    alts:['yippee','topramen'] },
+  {id:'yippee', emoji:'🍜', cat:'noodles',
+    name:{en:'Sunfeast Yippee Noodles',hi:'Sunfeast Yippee'},
+    match:['yippee','sunfeast'], pack:'case · 24 pcs', unit:'case',
+    offers:{hyper:{price:252,stock:true}, metro:{price:264,stock:true}, bigbasket:{price:258,stock:true}} },
+  {id:'topramen', emoji:'🍜', cat:'noodles',
+    name:{en:'Top Ramen Noodles',hi:'Top Ramen'},
+    match:['topramen','ramen','top ramen'], pack:'case · 24 pcs', unit:'case',
+    offers:{metro:{price:240,stock:true}, jiomart:{price:252,stock:true}} },
+
+  {id:'frooti', emoji:'🧃', cat:'juice',
+    name:{en:'Frooti Mango',hi:'Frooti Mango'},
+    match:['frooti'], alts:['real','slice','maaza'],
+    sizes:[
+      {label:'250ml', pack:'case · 24 pcs', unit:'case', offers:{metro:{price:492,stock:true}, hyper:{price:498,stock:true}, bigbasket:{price:480,stock:true}, jiomart:{price:504,stock:true}}},
+      {label:'600ml', pack:'case · 12 pcs', unit:'case', offers:{metro:{price:660,stock:true}, hyper:{price:672,stock:true}, bigbasket:{price:648,stock:true}, jiomart:{price:684,stock:true}}},
+      {label:'1.2L',  pack:'case · 9 pcs',  unit:'case', offers:{metro:{price:756,stock:true}, hyper:{price:768,stock:true}, bigbasket:{price:744,stock:true}}},
+    ] },
+  {id:'maaza', emoji:'🧃', cat:'juice',
+    name:{en:'Maaza Mango 250ml',hi:'Maaza Mango'},
+    match:['maaza'], pack:'case · 24 pcs', unit:'case',
+    offers:{bigbasket:{price:432,stock:true}, metro:{price:456,stock:true}} },
+  {id:'slice', emoji:'🧃', cat:'juice',
+    name:{en:'Slice Mango 250ml',hi:'Slice Mango'},
+    match:['slice'], pack:'case · 24 pcs', unit:'case',
+    offers:{hyper:{price:480,stock:true}, jiomart:{price:492,stock:true}} },
+  {id:'real', emoji:'🧃', cat:'juice',
+    name:{en:'Real Active Mixed Fruit 250ml',hi:'Real Active Mixed Fruit'},
+    match:['real'], pack:'case · 24 pcs', unit:'case',
+    offers:{metro:{price:456,stock:true}, bigbasket:{price:468,stock:true}} },
+
+  {id:'sugar', emoji:'🧂', cat:'staples',
+    name:{en:'Sugar (Cheeni)',hi:'Cheeni'},
+    match:['sugar','cheeni','chini','shakkar'],
+    sizes:[
+      {label:'50kg', pack:'sack · 50kg', unit:'sack', offers:{hyper:{price:2100,stock:true}, metro:{price:2175,stock:true}, bigbasket:{price:2150,stock:true}, grain:{price:2090,stock:true}}},
+      {label:'25kg', pack:'sack · 25kg', unit:'sack', offers:{hyper:{price:1080,stock:true}, metro:{price:1110,stock:true}, bigbasket:{price:1095,stock:true}, grain:{price:1075,stock:true}}},
+    ] },
+  {id:'atta', emoji:'🌾', cat:'staples',
+    name:{en:'Aashirvaad Atta',hi:'Aashirvaad Atta'},
+    match:['atta','aashirvaad','aata','flour','gehu'], alts:['fortune'],
+    sizes:[
+      {label:'10kg', pack:'bag · 10kg', unit:'bag', offers:{bigbasket:{price:485,stock:true}, metro:{price:498,stock:true}, hyper:{price:492,stock:true}, jiomart:{price:505,stock:true}}},
+      {label:'5kg',  pack:'bag · 5kg',  unit:'bag', offers:{bigbasket:{price:255,stock:true}, metro:{price:262,stock:true}, hyper:{price:258,stock:true}, jiomart:{price:268,stock:true}}},
+      {label:'1kg',  pack:'pack · 1kg', unit:'pack', offers:{bigbasket:{price:56,stock:true}, metro:{price:58,stock:true}, hyper:{price:57,stock:true}, jiomart:{price:60,stock:true}}},
+    ] },
+  {id:'fortune', emoji:'🌾', cat:'staples',
+    name:{en:'Fortune Chakki Atta 10kg',hi:'Fortune Chakki Atta'},
+    match:['fortune'], pack:'bag · 10kg', unit:'bag',
+    offers:{metro:{price:468,stock:true}, bigbasket:{price:475,stock:true}} },
+  {id:'salt', emoji:'🧂', cat:'staples',
+    name:{en:'Tata Salt 1kg',hi:'Tata Salt 1kg'},
+    match:['salt','namak','tata salt'], pack:'pack · 10×1kg', unit:'pack',
+    offers:{bigbasket:{price:235,stock:true}, metro:{price:245,stock:true}, hyper:{price:240,stock:true}} },
+  {id:'oil', emoji:'🛢️', cat:'staples',
+    name:{en:'Fortune Sunflower Oil',hi:'Fortune Sunflower Oil'},
+    match:['oil','tel','sunflower','refined'],
+    sizes:[
+      {label:'15L tin', pack:'tin · 15L',     unit:'tin',  offers:{hyper:{price:1860,stock:true}, metro:{price:1920,stock:true}, bigbasket:{price:1890,stock:true}, grain:{price:1845,stock:true}}},
+      {label:'5L jar',  pack:'jar · 5L',      unit:'jar',  offers:{hyper:{price:640,stock:true}, metro:{price:660,stock:true}, bigbasket:{price:648,stock:true}, grain:{price:632,stock:true}}},
+      {label:'2L',      pack:'bottle · 2L',   unit:'bottle', offers:{hyper:{price:252,stock:true}, metro:{price:262,stock:true}, bigbasket:{price:256,stock:true}, grain:{price:248,stock:true}}},
+      {label:'1L',      pack:'case · 12×1L',  unit:'case', offers:{hyper:{price:1500,stock:true}, metro:{price:1560,stock:true}, bigbasket:{price:1530,stock:true}, grain:{price:1490,stock:true}}},
+    ] },
+  {id:'rice', emoji:'🍚', cat:'staples',
+    name:{en:'India Gate Basmati',hi:'India Gate Basmati'},
+    match:['rice','chawal','basmati','chaval'],
+    sizes:[
+      {label:'25kg', pack:'bag · 25kg', unit:'bag', offers:{grain:{price:2250,stock:true}, hyper:{price:2310,stock:true}, metro:{price:2340,stock:true}, bigbasket:{price:2290,stock:true}}},
+      {label:'10kg', pack:'bag · 10kg', unit:'bag', offers:{grain:{price:920,stock:true}, hyper:{price:945,stock:true}, metro:{price:960,stock:true}, bigbasket:{price:935,stock:true}}},
+    ] },
+  {id:'tea', emoji:'🫖', cat:'beverages',
+    name:{en:'Tata Tea Gold',hi:'Tata Tea Gold'},
+    match:['tea','chai','chai patti','patti'],
+    sizes:[
+      {label:'1kg',   pack:'pack · 1kg',   unit:'pack', offers:{metro:{price:545,stock:true}, hyper:{price:555,stock:true}, jiomart:{price:535,stock:true}, bigbasket:{price:540,stock:true}}},
+      {label:'500g',  pack:'pack · 500g',  unit:'pack', offers:{metro:{price:285,stock:true}, hyper:{price:290,stock:true}, jiomart:{price:280,stock:true}, bigbasket:{price:283,stock:true}}},
+      {label:'250g',  pack:'pack · 250g',  unit:'pack', offers:{metro:{price:150,stock:true}, hyper:{price:153,stock:true}, jiomart:{price:147,stock:true}, bigbasket:{price:149,stock:true}}},
+    ] },
+];
+
+// digital ledger: items the system "knows" are low (hybrid inventory)
+const LEDGER_LOW = ['atta','salt'];
+
+/* ---- Stock + sales velocity (mock live inventory feed) ---- */
+// onHand & threshold in the product's own unit; velocity = units sold/week
+const STOCK = {
+  maggi:{onHand:5, threshold:12, velocity:14, suggest:3},
+  atta: {onHand:3, threshold:8,  velocity:9,  suggest:6},
+  oil:  {onHand:1, threshold:4,  velocity:5,  suggest:3},
+  frooti:{onHand:9, threshold:8, velocity:6,  suggest:0},
+  sugar:{onHand:6, threshold:4,  velocity:3,  suggest:0},
+  tea:  {onHand:2, threshold:5,  velocity:4,  suggest:4},
+};
+
+/* ---- Active trade schemes (the gap owners miss) ---- */
+// type:'qty' => buy X get Y free | type:'disc' => minQty for pct off
+const SCHEMES = [
+  {sup:'hyper',     pid:'maggi', type:'qty',  buy:10, free:1, label:'10 case lo, 1 FREE'},
+  {sup:'bigbasket', pid:'atta',  type:'disc', minQty:5, pct:5,  label:'Q3 scheme · 5+ bag pe 5% off'},
+  {sup:'metro',     pid:'oil',   type:'disc', minQty:3, pct:6,  label:'3+ tin pe 6% off'},
+  {sup:'hyper',     pid:'tea',   type:'qty',  buy:6,  free:1, label:'6 pack lo, 1 FREE'},
+];
+function schemeFor(pid,sup){return SCHEMES.find(s=>s.pid===pid&&s.sup===sup)}
+// returns {discount:₹off-bill, bonusValue:₹value-of-free-goods, note, qualifies, need}
+function applyScheme(pid,sup,qty,unitPrice){
+  const s=schemeFor(pid,sup); if(!s)return null;
+  if(s.type==='disc'){
+    if(qty>=s.minQty) return {discount:Math.round(unitPrice*qty*s.pct/100), bonusValue:0, qualifies:true, label:s.label, note:`${s.pct}% off lagaya`};
+    return {discount:0, bonusValue:0, qualifies:false, label:s.label, need:s.minQty-qty, hint:`${s.minQty-qty} aur ${'bag/tin'} lein → ${s.pct}% off`};
+  } else { // qty
+    if(qty>=s.buy){const sets=Math.floor(qty/s.buy); return {discount:0, bonusValue:sets*s.free*unitPrice, qualifies:true, label:s.label, note:`+${sets*s.free} FREE (₹${(sets*s.free*unitPrice).toLocaleString('en-IN')} value)`};}
+    return {discount:0, bonusValue:0, qualifies:false, label:s.label, need:s.buy-qty, hint:`${s.buy-qty} aur case lein → 1 FREE (₹${unitPrice.toLocaleString('en-IN')})`};
+  }
+}
+
+/* ---- Price intelligence: % change vs last month (per supplier) ---- */
+const PRICE_TREND = {
+  maggi:{bigbasket:+8, metro:+3, hyper:-2},
+  oil:  {metro:+5, bigbasket:+2},
+  atta: {jiomart:+6},
+  sugar:{metro:+4},
+  tea:  {hyper:+3},
+};
+function trendFor(pid,sup){const t=PRICE_TREND[pid];return t&&t[sup]?t[sup]:0}
+
+/* ---- Supplier payments / udhaar tracker (both ways) ---- */
+// what the store owes distributors
+const PAYABLES = [
+  {sup:'metro',     amt:4860, dueInDays:2},
+  {sup:'grain',     amt:2100, dueInDays:-1},   // overdue
+  {sup:'hyper',     amt:3240, dueInDays:6},
+  {sup:'bigbasket', amt:1480, dueInDays:11},
+];
+// what distributors owe the store (credit notes, scheme payouts, returns, deposits)
+const RECEIVABLES = [
+  {sup:'metro',     amt:680, type:'Credit note',   note:'2 oil tin damaged — return accepted', ageDays:3},
+  {sup:'hyper',     amt:540, type:'Scheme payout',  note:'Q2 incentive slab — credit pending', ageDays:9},
+  {sup:'bigbasket', amt:240, type:'Return pickup',  note:'expired Maggi stock — pickup done',   ageDays:1},
+  {sup:'grain',     amt:150, type:'Crate deposit',  note:'refundable on khaali crate return',   ageDays:20},
+];
+
+/* =========================================================
+   2. SCORING ENGINE — composite, price-weighted
+   ========================================================= */
+const WEIGHTS = {price:0.60, eta:0.25, onTime:0.15}; // price 60%, delivery & reliability 40%
+
+// size accessors — products may have multiple pack sizes (ml/kg/L)
+function sizesOf(p){return p.sizes||[{label:p.unit,pack:p.pack,unit:p.unit,offers:p.offers}]}
+function sizeOf(p,idx){const a=sizesOf(p);return a[Math.min(idx||0,a.length-1)]}
+
+function scoreOffers(offers){
+  // gather in-stock offers
+  const rows = Object.entries(offers)
+    .filter(([s,o])=>o.stock && o.price>0)
+    .map(([s,o])=>({sup:s, price:o.price, etaH:SUPPLIERS[s].etaH, onTime:SUPPLIERS[s].onTime}));
+  if(!rows.length) return [];
+  const minP=Math.min(...rows.map(r=>r.price)), maxP=Math.max(...rows.map(r=>r.price));
+  const minE=Math.min(...rows.map(r=>r.etaH)), maxE=Math.max(...rows.map(r=>r.etaH));
+  rows.forEach(r=>{
+    // normalise 0..1 (1 = best)
+    r.nPrice = maxP===minP?1:(maxP-r.price)/(maxP-minP);
+    r.nEta   = maxE===minE?1:(maxE-r.etaH)/(maxE-minE);
+    r.nOnTime= r.onTime;
+    r.score  = r.nPrice*WEIGHTS.price + r.nEta*WEIGHTS.eta + r.nOnTime*WEIGHTS.onTime;
+  });
+  rows.sort((a,b)=>b.score-a.score);
+  return rows;
+}
+
+/* =========================================================
+   3. CART STATE
+   ========================================================= */
+let cart = [];        // [{productId, qty}]
+
+function addToCart(productId, qty, sizeIdx){
+  sizeIdx = sizeIdx||0;
+  const ex = cart.find(c=>c.productId===productId);
+  if(ex){ ex.qty += qty; } else cart.push({productId, qty, sizeIdx});
+}
+function findProduct(id){return CATALOG.find(p=>p.id===id)}
+
+// build the winning basket: each line gets its best-scored supplier for the chosen size
+function buildBasket(){
+  return cart.map(c=>{
+    const p=findProduct(c.productId);
+    const size=sizeOf(p,c.sizeIdx);
+    const ranked=scoreOffers(size.offers);
+    const recommended=ranked[0];                                  // NAM's composite pick
+    const chosen=(c.supOverride&&ranked.find(r=>r.sup===c.supOverride))||recommended; // owner can override
+    return {product:p, qty:c.qty, sizeIdx:c.sizeIdx||0, size, ranked, recommended, winner:chosen};
+  }).filter(l=>l.winner);
+}
+
+/* =========================================================
+   4. FREE-TEXT PARSER (handles loose Kirana phrasing)
+   ========================================================= */
+const NUM_WORDS={ek:1,do:2,teen:3,char:4,paanch:5,panch:5,che:6,one:1,two:2,three:3,four:4,five:5};
+function parseOrder(text){
+  const t=' '+text.toLowerCase().replace(/[,.]/g,' ')+' ';
+  const found=[];
+  CATALOG.forEach(p=>{
+    for(const kw of p.match){
+      const idx=t.indexOf(' '+kw);
+      if(idx>=0){
+        // look for a quantity in a window before the keyword
+        const before=t.slice(Math.max(0,idx-18),idx);
+        let qty=1;
+        const numMatch=before.match(/(\d+)\s*(peti|case|bori|bag|sack|tin|pack|bottle|box)?\s*$/);
+        if(numMatch) qty=parseInt(numMatch[1]);
+        else{
+          for(const w in NUM_WORDS){ if(before.includes(' '+w+' ')||before.includes(' '+w)){qty=NUM_WORDS[w];break;} }
+        }
+        found.push({id:p.id, qty});
+        break;
+      }
+    }
+  });
+  // dedupe keeping max qty
+  const map={};
+  found.forEach(f=>{map[f.id]=Math.max(map[f.id]||0,f.qty)});
+  return Object.entries(map).map(([id,qty])=>({id,qty:qty||1}));
+}
+
+/* =========================================================
+   5. COPY
+   ========================================================= */
+const L={
+ en:{ph:"Type what's running low…",
+  greet:"Namaste Rajeshji 🙏 I'm Saudha. Just tell me what's running low — type it like you'd tell your supplier. e.g. <i>\"Maggi khatam, 2 peti Frooti aur 1 bori chini chahiye\"</i>",
+  parsedNone:"Hmm, I couldn't spot a product I stock. Try things like <b>Maggi, Frooti, sugar, atta, oil, rice, tea, salt</b> — with a quantity.",
+  parsedSome:"Got it 👍 Here's what I understood:",
+  ledger:n=>`From your digital ledger, <b>${n}</b> ${n.includes(',')?'are':'is'} also low this week. Add to the order?`,
+  discovering:"Checking prices across your suppliers…",
+  discDone:n=>`Compared ${n} suppliers · scored on price + delivery + reliability`,
+  recTtl:"Best basket for you",
+  recSub:(n,sv)=>`Split across ${n} supplier${n>1?'s':''}${sv>0?` · you save ₹${sv} vs single-supplier`:''}`,
+  cheapest:"cheapest", fast:"fastest",
+  splitH:"Who delivers what", total:"Total", oneNote:n=>`One payment · ${n} deliver${n>1?'ies':'y'}`,
+  pay:t=>`Pay ₹${t.toLocaleString('en-IN')}`, edit:"Edit", rm:"Remove", swap:"Swap",
+  swapH:p=>`Alternatives for ${p} — ranked by composite score`,
+  swapSub:"Same category · best blend of price, speed & reliability",
+  empty:"Your basket is empty. Tell me what you need and I'll rebuild it.",
+  payTtl:"Confirm & Pay", paySub:"One payment from you. We settle each supplier — full breakup below.",
+  payMethod:"HDFC •••• 4821", payMethodSub:"Saved · auto-pay enabled", paySecure:"🔒 Stored securely",
+  payBtn:t=>`Pay ₹${t.toLocaleString('en-IN')} securely`,
+  succTtl:"Order placed! 🎉", succSub:t=>`₹${t.toLocaleString('en-IN')} paid in one go. Deliveries are on the way — you'll get a WhatsApp update for each.`,
+  paidNote:t=>`Paid ₹${t.toLocaleString('en-IN')} · split automatically`,
+  again:"Order something else",
+  whyTpl:(items)=>`<b>Why this basket?</b> I rank every supplier on price (60%) + delivery speed (25%) + on-time record (15%). ${items}`,
+  newOrderQ:"🛒 New order",
+  status:{placed:'Placed',confirmed:'Confirmed',packed:'Packed',out:'Out for delivery'},
+  ordersTtl:"📋 Your orders", noOrders:"No orders yet. Tell me what's running low to place one.",
+  orderIdLbl:"Order", trackLive:"Live status — updates as suppliers confirm"},
+ hi:{ph:"Jo khatam ho raha hai likhein…",
+  greet:"Namaste Rajeshji 🙏 Main Saudha hoon. Bas bataiye kya khatam ho raha hai — aise hi likhiye jaise supplier ko bolte hain. jaise <i>\"Maggi khatam, 2 peti Frooti aur 1 bori chini chahiye\"</i>",
+  parsedNone:"Hmm, koi product nahi mila jo main rakhta hoon. Try kijiye <b>Maggi, Frooti, cheeni, atta, tel, chawal, chai, namak</b> — quantity ke saath.",
+  parsedSome:"Theek hai 👍 Yeh samajh aaya:",
+  ledger:n=>`Aapke digital bahi-khate se <b>${n}</b> bhi is hafte kam hai. Order mein add karoon?`,
+  discovering:"Suppliers ke rate check kar raha hoon…",
+  discDone:n=>`${n} suppliers compare kiye · price + delivery + bharosa pe score`,
+  recTtl:"Aapke liye sabse accha basket",
+  recSub:(n,sv)=>`${n} supplier mein split${sv>0?` · single-supplier se ₹${sv} bachat`:''}`,
+  cheapest:"sabse sasta", fast:"sabse fast",
+  splitH:"Kaun kya laayega", total:"Total", oneNote:n=>`Ek payment · ${n} delivery`,
+  pay:t=>`₹${t.toLocaleString('en-IN')} pay karein`, edit:"Badlein", rm:"Hatayein", swap:"Badlo",
+  swapH:p=>`${p} ke options — composite score se ranked`,
+  swapSub:"Same category · price, speed aur bharose ka best mix",
+  empty:"Basket khaali hai. Bataiye kya chahiye, dobara bana deta hoon.",
+  payTtl:"Confirm karke Pay karein", paySub:"Aap se ek payment. Hum har supplier ko settle karte hain — neeche poora hisaab.",
+  payMethod:"HDFC •••• 4821", payMethodSub:"Saved · auto-pay on", paySecure:"🔒 Surakshit",
+  payBtn:t=>`₹${t.toLocaleString('en-IN')} surakshit pay karein`,
+  succTtl:"Order ho gaya! 🎉", succSub:t=>`₹${t.toLocaleString('en-IN')} ek saath pay hua. Delivery aa rahi hai — har ek ka WhatsApp update milega.`,
+  paidNote:t=>`₹${t.toLocaleString('en-IN')} pay · apne aap split`,
+  again:"Kuch aur order karein",
+  whyTpl:(items)=>`<b>Yeh basket kyun?</b> Main har supplier ko price (60%) + delivery speed (25%) + on-time record (15%) pe rank karta hoon. ${items}`,
+  newOrderQ:"🛒 Naya order",
+  status:{placed:'Placed',confirmed:'Confirm hua',packed:'Pack hua',out:'Delivery pe'},
+  ordersTtl:"📋 Aapke orders", noOrders:"Abhi koi order nahi. Bataiye kya khatam hai, order laga dete hain.",
+  orderIdLbl:"Order", trackLive:"Live status — supplier confirm karte hi update hoga"}
+};
+let lang='hi';
+
+/* =========================================================
+   6. RENDER HELPERS
+   ========================================================= */
+const chat=document.getElementById('chat'), quick=document.getElementById('quick');
+function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
+function scroll(){chat.scrollTop=chat.scrollHeight}
+function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild}
+function bubbleIn(html){const r=el(`<div class="row in fadein"><div class="bub">${html}<span class="t">${now()}</span></div></div>`);chat.appendChild(r);scroll();return r}
+function bubbleOut(html){const r=el(`<div class="row out fadein"><div class="bub">${html}<span class="t">${now()} ✓✓</span></div></div>`);chat.appendChild(r);scroll();return r}
+function sys(t){const r=el(`<div class="sys fadein"></div>`);r.textContent=t;chat.appendChild(r);scroll();return r}
+function typing(){const r=el(`<div class="typing fadein"><span></span><span></span><span></span></div>`);chat.appendChild(r);scroll();return r}
+async function botSay(html,delay=900){const t=typing();await wait(delay);t.remove();return bubbleIn(html)}
+function clearQuick(){quick.innerHTML=''}
+function quickBtns(btns){clearQuick();btns.forEach(b=>{const e=el(`<button class="qbtn${b.ghost?' ghost':''}"></button>`);e.innerHTML=b.label;e.onclick=()=>{clearQuick();b.act()};quick.appendChild(e)})}
+
+/* =========================================================
+   7. FLOW
+   ========================================================= */
+function reset(){chat.innerHTML='';clearQuick();cart=[];}
+async function start(){
+  reset();
+  await botSay(L[lang].greet,500);
+  await wait(400);
+  // proactive PUSH trigger — reorder agent fires off live stock data
+  await pushStockAlert();
+}
+function homeMenu(){
+  quickBtns([
+    {label:'💰 Schemes dekho', act:renderSchemes},
+    {label:'💳 Udhaar / Payments', act:renderPayments},
+    {label:'📈 Price watch', act:renderPriceWatch},
+    {label:'🛒 Naya order', act:()=>{clearQuick();sys('Naya order — neeche likhein');document.getElementById('input').focus()}},
+  ]);
+}
+function restartQuick(){homeMenu();}
+
+async function handleText(text){
+  bubbleOut(text); clearQuick();
+  const parsed=parseOrder(text);
+  if(!parsed.length){ await botSay(L[lang].parsedNone,700); return; }
+  parsed.forEach(p=>addToCart(p.id,p.qty));
+  await botSay(L[lang].parsedSome,800);
+  const lines=parsed.map(p=>{const pr=findProduct(p.id);const sz=sizeOf(pr,0);return `• <b>${pr.name[lang]}</b>${sizesOf(pr).length>1?' '+sz.label:''} — ${p.qty} ${sz.unit}${p.qty>1?'s':''}`}).join('<br>');
+  bubbleIn(lines);
+  // ledger suggestion (hybrid inventory)
+  const missing=LEDGER_LOW.filter(id=>!cart.find(c=>c.productId===id));
+  if(missing.length){
+    await wait(300);
+    const names=missing.map(id=>findProduct(id).name[lang]).join(', ');
+    await botSay(L[lang].ledger(names),900);
+    quickBtns([
+      {label:'➕ '+(lang==='en'?'Yes, add them':'Haan, add karo'), act:()=>{missing.forEach(id=>addToCart(id,1));runDiscovery()}},
+      {label:(lang==='en'?'No, just these':'Nahi, bas yahi'), ghost:true, act:runDiscovery}
+    ]);
+  } else runDiscovery();
+}
+
+async function runDiscovery(){
+  clearQuick();
+  document.getElementById('status').textContent = lang==='en'?'discovering prices…':'rate dhoond raha hai…';
+  const card=el(`<div class="disc fadein"><div class="disc-h"><span class="spin"></span>${L[lang].discovering}</div></div>`);
+  chat.appendChild(card);scroll();
+  const order=['metro','hyper','bigbasket','grain','jiomart'];
+  for(const s of order){
+    await wait(440);
+    const sup=SUPPLIERS[s];
+    // how "good" this supplier looks overall = blended onTime+speed, just for the bar
+    const w=Math.round((sup.onTime*0.6+(1-sup.etaH/30)*0.4)*100);
+    const row=el(`<div class="disc-row"><span class="sup">${sup.name}</span><div class="disc-bar"><i></i></div><span class="ok">✓</span></div>`);
+    card.appendChild(row);scroll();
+    requestAnimationFrame(()=>row.querySelector('i').style.width=w+'%');
+  }
+  await wait(650);
+  card.querySelector('.disc-h').innerHTML=`✅ ${L[lang].discDone(order.length)}`;
+  document.getElementById('status').textContent='online';
+  await wait(450);
+  renderBasket();
+}
+
+/* scheme-aware totals — shared by recommendation, payment & order */
+function annotateBasket(basket){
+  let schemeSavings=0;
+  basket.forEach(l=>{
+    l.sch=applyScheme(l.product.id,l.winner.sup,l.qty,l.winner.price);
+    l.trend=trendFor(l.product.id,l.winner.sup);
+    l.gross=l.winner.price*l.qty;
+    l.discount=(l.sch&&l.sch.qualifies)?l.sch.discount:0;
+    l.lineAmt=l.gross-l.discount;
+    if(l.sch&&l.sch.qualifies)schemeSavings+=l.discount+l.sch.bonusValue;
+  });
+  const total=basket.reduce((s,l)=>s+l.lineAmt,0);
+  const split={};
+  basket.forEach(l=>{const s=l.winner.sup;if(!split[s])split[s]={amt:0,items:[]};split[s].amt+=l.lineAmt;split[s].items.push(l.product.name[lang]);});
+  return {total,split,schemeSavings};
+}
+
+/* the live, editable recommendation card */
+let basketCardEl=null;
+function renderBasket(){
+  if(basketCardEl){basketCardEl.remove();basketCardEl=null;}
+  const basket=buildBasket();
+  if(!basket.length){ bubbleIn(L[lang].empty); return; }
+
+  const {total,split,schemeSavings}=annotateBasket(basket); // applies schemes + trends to each line
+  const supCount=Object.keys(split).length;
+
+  // savings vs forcing everything onto a single supplier (best single supplier total)
+  const singleTotals={};
+  Object.keys(SUPPLIERS).forEach(s=>{
+    let ok=true,t=0;
+    basket.forEach(l=>{const o=l.size.offers[s];if(o&&o.stock&&o.price>0)t+=o.price*l.qty;else ok=false});
+    if(ok)singleTotals[s]=t;
+  });
+  const bestSingle=Object.values(singleTotals).length?Math.min(...Object.values(singleTotals)):total;
+  const savings=Math.max(0,bestSingle-total);
+
+  // ---- V2: each item = a product card with a tappable supplier offer-stack ----
+  const rows=basket.map((l,i)=>{
+    const minP=Math.min(...l.ranked.map(r=>r.price));
+    const minE=Math.min(...l.ranked.map(r=>r.etaH));
+    const offersSorted=[...l.ranked].sort((a,b)=>a.price-b.price);
+    const offerRows=offersSorted.map(r=>{
+      const sup=SUPPLIERS[r.sup];
+      const win=r.sup===l.winner.sup;
+      // scheme on the winner: disc -> strike per-pack price; qty -> free-goods note
+      let mrp='', amt=r.price, freeNote='';
+      if(win && l.sch && l.sch.qualifies){
+        if(l.discount>0){ mrp=r.price; amt=r.price-Math.round(l.discount/l.qty); }
+        else if(l.sch.bonusValue>0){ freeNote=l.sch.note; }
+      }
+      const reason = win ? (r.price===minP?'Sabse sasta' : r.etaH===minE?'Tez delivery' : 'NAM pick') : '';
+      return `<div class="offer ${win?'win':''}" onclick="pickSupplier(${i},'${r.sup}')">
+        <span class="logo ${sup.cls}">${sup.name}</span>
+        <div class="od">
+          <div class="pk">${l.size.pack}${freeNote?` · 🎁 ${freeNote}`:''}</div>
+          <div class="dl"><span>🚚 ${etaLabel(r.etaH)}</span>${win?`<span class="pickbadge">✓ ${reason}</span>`:''}</div>
+        </div>
+        <div class="opx">${mrp?`<div class="mrp">₹${mrp.toLocaleString('en-IN')}</div>`:''}<div class="amt">₹${amt.toLocaleString('en-IN')}</div></div>
+      </div>`;
+    }).join('');
+    const allSizes=sizesOf(l.product);
+    const sizeChips=allSizes.length>1
+      ? allSizes.map((sz,si)=>`<button class="sizebtn ${si===l.sizeIdx?'on':''}" onclick="chSize(${i},${si})">${sz.label}</button>`).join('')
+      : '';
+    const canSwap=(l.product.alts&&l.product.alts.length);
+    const schemeNudge=l.sch&&!l.sch.qualifies?`<div class="nudge">🎁 ${l.sch.hint}</div>`:'';
+    return `<div class="pcard" data-i="${i}">
+      <div class="pc-top">
+        <div class="pc-img">${l.product.emoji}</div>
+        <div class="pc-name"><div class="t1">${l.product.name[lang]}</div><div class="t2">${l.qty} ${l.size.unit}${l.qty>1?'s':''}${allSizes.length>1?' · '+l.size.label:''}</div></div>
+        <div class="pc-step"><button onclick="chQty(${i},-1)">−</button><span class="q">${l.qty}</span><button onclick="chQty(${i},1)">+</button></div>
+      </div>
+      <div class="offers">${offerRows}</div>
+      ${schemeNudge}
+      <div class="pc-foot">
+        <div class="sizes2">${sizeChips}</div>
+        ${canSwap?`<button class="pc-mini" style="color:var(--wa-accent)" onclick="openSwap(${i})">⇄ Doosra brand</button>`:''}
+        <button class="pc-mini rm" onclick="removeLine(${i})">Hatao</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalSaved=savings+schemeSavings;
+  const vhero=`<div class="vhero">
+    <div class="vh-l"><div class="a">NAM ne sab suppliers compare kiye</div><div class="b">${L[lang].recTtl}</div></div>
+    ${totalSaved>0?`<div class="vh-save"><div class="s1">₹${totalSaved.toLocaleString('en-IN')}</div><div class="s2">bachat</div></div>`:''}
+  </div>`;
+
+  const splitRows=Object.entries(split).map(([s,d])=>{
+    const sup=SUPPLIERS[s];
+    return `<div class="split-row"><span class="sup-pill ${sup.cls}">${sup.name}</span> <span class="eta">${etaLabel(sup.etaH)}</span><span class="amt">₹${d.amt.toLocaleString('en-IN')}</span></div>`;
+  }).join('');
+
+  const card=el(`<div class="vrec fadein" style="align-self:stretch">
+    ${vhero}
+    ${rows}
+    <div class="pcard">
+      <div class="split"><div class="split-h">${L[lang].splitH}</div>${splitRows}</div>
+      <div class="total"><div class="lbl">${L[lang].total}<small>${L[lang].oneNote(supCount)}</small></div><div class="val">₹${total.toLocaleString('en-IN')}</div></div>
+      <div class="acts"><button class="btn pay" onclick="goPay()">${L[lang].pay(total)}</button></div>
+    </div>
+  </div>`);
+  chat.appendChild(card);basketCardEl=card;scroll();
+}
+/* edits */
+function chQty(i,d){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  const c=cart.find(x=>x.productId===line.product.id);
+  c.qty=Math.max(1,c.qty+d);
+  renderBasket();
+}
+function pickSupplier(i,sup){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  const c=cart.find(x=>x.productId===line.product.id);
+  c.supOverride=sup;
+  renderBasket();
+}
+function chSize(i,si){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  const c=cart.find(x=>x.productId===line.product.id);
+  c.sizeIdx=si;
+  renderBasket();
+}
+function removeLine(i){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  cart=cart.filter(c=>c.productId!==line.product.id);
+  if(!cart.length){ if(basketCardEl){basketCardEl.remove();basketCardEl=null;} botSay(L[lang].empty,300); restartQuick(); return;}
+  renderBasket();
+}
+function openSwap(i){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  const p=line.product;
+  // alternatives = sibling products in alts list + this product's other suppliers
+  const altProducts=(p.alts||[]).map(findProduct).filter(Boolean);
+  const options=[];
+  // other suppliers of same product (same chosen size)
+  const curLabel=line.size.label;
+  line.ranked.slice(1).forEach(r=>options.push({pid:p.id, sup:r.sup, price:r.price, score:r.score, name:p.name[lang]+(sizesOf(p).length>1?' '+curLabel:''), emoji:p.emoji, etaH:r.etaH, unit:line.size.unit}));
+  // alternative products (their best offer, default size)
+  altProducts.forEach(ap=>{const sz=sizeOf(ap,0); const rk=scoreOffers(sz.offers); if(rk[0])options.push({pid:ap.id, sup:rk[0].sup, price:rk[0].price, score:rk[0].score, name:ap.name[lang]+(sizesOf(ap).length>1?' '+sz.label:''), emoji:ap.emoji, etaH:rk[0].etaH, unit:sz.unit});});
+  options.sort((a,b)=>b.score-a.score);
+
+  const rows=options.map((o,k)=>{
+    const sup=SUPPLIERS[o.sup];
+    return `<div class="alt ${k===0?'best':''}" onclick="doSwap(${i},'${o.pid}')">
+      <div class="ic">${o.emoji}</div>
+      <div class="info"><div class="nm">${o.name} ${k===0?'<span class="tag">BEST</span>':''}</div>
+        <div class="meta">${sup.name} · ₹${o.price.toLocaleString('en-IN')}/${o.unit} · ${etaLabel(o.etaH)}</div></div>
+      <div class="px">₹${(o.price*line.qty).toLocaleString('en-IN')}</div>
+    </div>`;
+  }).join('');
+  const sheet=el(`<div class="swap fadein"><div class="swap-h">${L[lang].swapH(p.name[lang].split(' ')[0])}</div><div class="swap-sub">${L[lang].swapSub}</div>${rows}</div>`);
+  chat.appendChild(sheet);scroll();
+}
+async function doSwap(i,newPid){
+  const basket=buildBasket(); const line=basket[i]; if(!line)return;
+  const oldId=line.product.id, qty=line.qty;
+  // remove sheets
+  document.querySelectorAll('.swap').forEach(s=>s.remove());
+  if(newPid!==oldId){
+    cart=cart.map(c=>c.productId===oldId?{productId:newPid,qty}:c);
+    await botSay((lang==='en'?'Done — swapped to <b>':'Ho gaya — <b>')+findProduct(newPid).name[lang]+(lang==='en'?'</b>. Re-balanced your basket & total.':'</b> mein badal diya. Basket aur total update.'),600);
+  }
+  renderBasket();
+}
+
+/* payment */
+async function goPay(){
+  const basket=buildBasket(); const {total,split,schemeSavings}=annotateBasket(basket);
+  clearQuick(); bubbleOut(L[lang].pay(total)); await wait(450);
+  const lines=Object.entries(split).map(([s,d])=>{
+    const sup=SUPPLIERS[s];
+    return `<div class="pay-line"><span class="dot" style="background:${sup.color}"></span><div>${sup.name}<small>${d.items.join(', ')}</small></div><span class="amt">₹${d.amt.toLocaleString('en-IN')}</span></div>`;
+  }).join('');
+  const saveLine=schemeSavings>0?`<div class="pay-line"><span class="dot" style="background:#00a884"></span><div>🎁 Scheme bachat</div><span class="amt" style="color:#7ed492">− ₹${schemeSavings.toLocaleString('en-IN')}</span></div>`:'';
+  const card=el(`<div class="pay-card fadein">
+    <div class="pay-head"><div class="ttl">${L[lang].payTtl}</div><div class="sub">${L[lang].paySub}</div></div>
+    ${lines}
+    ${saveLine}
+    <div class="pay-method"><span class="vi">💳</span><div class="txt">${L[lang].payMethod}<small>${L[lang].payMethodSub}</small></div><span class="chk">${L[lang].paySecure}</span></div>
+    <div class="acts" style="border-top:1px solid var(--wa-line)"><button class="btn pay" onclick="confirmPay(${total})">${L[lang].payBtn(total)}</button></div>
+  </div>`);
+  chat.appendChild(card);scroll();
+}
+/* ---- order persistence ---- */
+function loadOrders(){try{return JSON.parse(localStorage.getItem('saudha_orders')||'[]')}catch(e){return[]}}
+function saveOrders(o){try{localStorage.setItem('saudha_orders',JSON.stringify(o))}catch(e){}}
+function newOrderId(){return 'SD'+Date.now().toString().slice(-6)}
+const STATUS_FLOW=['placed','confirmed','packed','out'];
+
+async function confirmPay(total){
+  const basket=buildBasket(); const {split}=annotateBasket(basket);
+  document.getElementById('status').textContent=lang==='en'?'processing payment…':'payment ho raha hai…';
+  document.querySelectorAll('.pay-card .btn').forEach(b=>{b.disabled=true;b.textContent='…'});
+  await wait(1300);
+  document.getElementById('status').textContent='online';
+
+  // ---- create & persist the order ----
+  const oid=newOrderId();
+  // group basket lines by supplier with full item detail
+  const bySup={};
+  basket.forEach(l=>{const s=l.winner.sup;if(!bySup[s])bySup[s]=[];bySup[s].push({emoji:l.product.emoji, name:l.product.name[lang]+(sizesOf(l.product).length>1?' '+l.size.label:''), qty:l.qty, unit:l.size.unit, amt:l.lineAmt, free:(l.sch&&l.sch.qualifies&&l.sch.bonusValue)?l.sch.note:''});});
+  const shipments=Object.entries(split).map(([s,d])=>({sup:s, amt:d.amt, items:Object.keys(bySup).includes(s)?bySup[s]:[], etaH:SUPPLIERS[s].etaH, status:'placed', placedAt:Date.now()}));
+  const order={id:oid, ts:Date.now(), total, shipments};
+  const orders=loadOrders(); orders.unshift(order); saveOrders(orders);
+
+  const track=shipments.map((sh,k)=>{
+    const sup=SUPPLIERS[sh.sup];
+    return `<div class="track-row" data-ship="${k}">🚚 ${sup.name} · ${etaLabel(sh.etaH)}<span class="stat st-placed">${L[lang].status.placed}</span><span class="amt2">₹${sh.amt.toLocaleString('en-IN')}</span></div>`;
+  }).join('');
+  const card=el(`<div class="succ fadein">
+    <div class="big">✓</div><div class="ttl">${L[lang].succTtl}</div><div class="sub">${L[lang].succSub(total)}</div>
+    <div class="order-id">${L[lang].orderIdLbl} #${oid}</div>
+    <div class="track">${track}</div></div>`);
+  chat.appendChild(card);scroll();
+  await wait(500); sys(L[lang].paidNote(total));
+  cart=[]; basketCardEl=null;
+  restartQuick();
+
+  // ---- live status: each supplier confirms then packs over a few seconds ----
+  advanceStatus(card, order);
+}
+
+function advanceStatus(card, order){
+  order.shipments.forEach((sh,k)=>{
+    // randomised-but-staggered progression to feel live
+    [1,2].forEach(stepIdx=>{
+      const delay=stepIdx*(1400 + k*500) + Math.random()*600;
+      setTimeout(()=>{
+        sh.status=STATUS_FLOW[Math.min(stepIdx,STATUS_FLOW.length-1)];
+        saveOrders(updateStored(order));
+        const row=card.querySelector(`[data-ship="${k}"] .stat`);
+        if(row){row.className='stat st-'+sh.status; row.textContent=L[lang].status[sh.status];}
+      }, delay);
+    });
+  });
+}
+function updateStored(order){
+  const orders=loadOrders(); const i=orders.findIndex(o=>o.id===order.id);
+  if(i>=0)orders[i]=order; return orders;
+}
+
+function showOrders(){
+  clearQuick();
+  const orders=loadOrders();
+  sys(L[lang].ordersTtl);
+  if(!orders.length){ botSay(L[lang].noOrders,300); return; }
+  orders.slice(0,8).forEach(o=>{
+    const d=new Date(o.ts);
+    const when=d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    const lines=o.shipments.map((sh,k)=>{
+      const sup=SUPPLIERS[sh.sup];
+      return `<div class="ord-line tap" onclick="openShipment('${o.id}',${k})"><span class="dot" style="background:${sup.color}"></span>${sup.name} <span class="stat st-${sh.status}" style="margin-left:auto">${L[lang].status[sh.status]}</span><span class="amt2">₹${sh.amt.toLocaleString('en-IN')}</span><span class="chev">›</span></div>`;
+    }).join('');
+    const card=el(`<div class="ord fadein">
+      <div class="ord-h"><span class="oid">#${o.id}</span><span class="when">${when}</span></div>
+      <div class="ord-body">${lines}</div>
+      <div class="ord-foot">${o.shipments.length} ${o.shipments.length>1?'deliveries':'delivery'}<b>₹${o.total.toLocaleString('en-IN')}</b></div>
+    </div>`);
+    chat.appendChild(card);
+  });
+  scroll();
+  restartQuick();
+}
+
+/* open one supplier's shipment: what's coming + live status tracker */
+const TRACK_ICON={placed:'🧾',confirmed:'✅',packed:'📦',out:'🚚',delivered:'🏪'};
+const TRACK_DESC={
+  placed:'Order place ho gaya', confirmed:'Supplier ne confirm kiya',
+  packed:'Pack ho raha hai', out:'Delivery ke liye nikla', delivered:'Pahunch gaya'
+};
+function openShipment(orderId, k){
+  clearQuick();
+  const order=loadOrders().find(o=>o.id===orderId); if(!order)return;
+  const sh=order.shipments[k]; const sup=SUPPLIERS[sh.sup];
+  // item list — handle both new (objects) and legacy (strings) formats
+  const itemRows=(sh.items||[]).map(it=>{
+    if(typeof it==='string') return `<div class="fl"><div class="ic">📦</div><div class="info"><div class="nm">${it}</div></div></div>`;
+    return `<div class="fl"><div class="ic">${it.emoji||'📦'}</div>
+      <div class="info"><div class="nm">${it.name}</div><div class="meta">${it.qty} ${it.unit}${it.qty>1?'s':''}${it.free?` · <span class="save">🎁 ${it.free}</span>`:''}</div></div>
+      <div class="rt"><div class="big">₹${(it.amt||0).toLocaleString('en-IN')}</div></div></div>`;
+  }).join('');
+  // status tracker — full flow, current step highlighted
+  const flow=[...STATUS_FLOW,'delivered'];
+  const curIdx=flow.indexOf(sh.status);
+  const steps=flow.map((st,idx)=>{
+    const state=idx<curIdx?'done':idx===curIdx?'now':'todo';
+    return `<div class="tk-step ${state}">
+      <div class="tk-dot">${idx<=curIdx?'✓':''}</div>
+      <div class="tk-body"><div class="tk-t">${TRACK_ICON[st]} ${L[lang].status[st]||st}</div>
+        <div class="tk-d">${TRACK_DESC[st]}${idx===curIdx&&st!=='delivered'?' · abhi':''}</div></div></div>`;
+  }).join('');
+  sys(`#${order.id} · ${sup.name}`);
+  const card=el(`<div class="fc fadein">
+    <div class="fc-h" style="background:${sup.color}22"><span class="fi">🚚</span>
+      <div><div class="ft" style="color:var(--wa-text)">${sup.name}</div><div class="fs">${(sh.items||[]).length} item${(sh.items||[]).length>1?'s':''} aa rahe · ETA ${etaLabel(sh.etaH)}</div></div>
+      <div class="rt" style="margin-left:auto"><div class="big" style="color:var(--wa-text)">₹${sh.amt.toLocaleString('en-IN')}</div></div></div>
+    ${itemRows}
+    <div class="tk-head">📍 Order tracking</div>
+    <div class="tracker">${steps}</div>
+  </div>`);
+  chat.appendChild(card);scroll();
+  homeMenu();
+}
+
+/* ============ REORDER AGENT — proactive push from live stock ============ */
+async function pushStockAlert(){
+  const low=Object.entries(STOCK).filter(([id,s])=>s.onHand<=s.threshold&&s.suggest>0)
+    .map(([id,s])=>({p:findProduct(id),s}));
+  if(!low.length){homeMenu();return;}
+  const rows=low.map(({p,s})=>{
+    const days=Math.max(1,Math.round(s.onHand/(s.velocity/7)));
+    return `<div class="fl"><div class="ic prod">${p.emoji}</div>
+      <div class="info"><div class="nm">${p.name[lang]}</div>
+        <div class="meta">Stock: ${s.onHand} ${sizeOf(p,0).unit} · ~${days} din bache · ${s.velocity}/week bikta hai</div></div>
+      <div class="rt"><div class="big">+${s.suggest} ${sizeOf(p,0).unit}</div><small>suggested</small></div></div>`;
+  }).join('');
+  await botSay('🔔 <b>Stock alert</b> — kuch items threshold ke neeche aa gaye. Maine poori order list taiyaar kar di hai.',1000);
+  const card=el(`<div class="fc fadein">
+    <div class="fc-h alert"><span class="fi">📦</span><div><div class="ft">${low.length} items reorder karne hain</div><div class="fs">Aapke sales se calculate kiya · ek tap mein approve</div></div></div>
+    ${rows}
+    <div class="fc-foot"><button class="btn pay" onclick="approveDraft()">✅ Order approve karke best rate dhoondo</button></div>
+  </div>`);
+  chat.appendChild(card);scroll();
+  homeMenu();
+}
+function approveDraft(){
+  clearQuick();
+  Object.entries(STOCK).filter(([id,s])=>s.onHand<=s.threshold&&s.suggest>0).forEach(([id,s])=>addToCart(id,s.suggest));
+  bubbleOut('Haan, approve karo 👍');
+  runDiscovery();
+}
+
+/* ============ TRADE SCHEME CAPTURE ============ */
+function renderSchemes(){
+  clearQuick(); sys('💰 Active schemes');
+  // typical order qty assumption per scheme for "savings if you order" illustration
+  const rows=SCHEMES.map(s=>{
+    const p=findProduct(s.pid); const sup=SUPPLIERS[s.sup];
+    const so=sizeOf(p,0).offers; const unit=so[s.sup]?so[s.sup].price:0;
+    let saveTxt,sub;
+    if(s.type==='qty'){const sets=1; saveTxt=`₹${(s.free*unit).toLocaleString('en-IN')}`; sub=`${s.label} · har ${s.buy} pe ${s.free} free`;}
+    else{const q=s.minQty; saveTxt=`₹${Math.round(unit*q*s.pct/100).toLocaleString('en-IN')}`; sub=`${s.label}`;}
+    return `<div class="fl"><div class="ic prod">${p.emoji}</div>
+      <div class="info"><div class="nm">${p.name[lang]} <span class="sup-pill ${sup.cls}">${sup.name}</span></div>
+        <div class="meta">${sub}</div></div>
+      <div class="rt"><div class="big save">${saveTxt}</div><small>bachat</small></div></div>`;
+  }).join('');
+  const totalSave=SCHEMES.reduce((t,s)=>{const unit=sizeOf(findProduct(s.pid),0).offers[s.sup]?.price||0;return t+(s.type==='qty'?s.free*unit:Math.round(unit*s.minQty*s.pct/100))},0);
+  const card=el(`<div class="fc fadein">
+    <div class="fc-h money"><span class="fi">🎁</span><div><div class="ft">${SCHEMES.length} schemes aapke SKUs pe</div><div class="fs">Distributors offer karte hain par log miss kar dete hain</div></div></div>
+    ${rows}
+    <div class="nudge">In sab ka faayda lein to is cycle <b>~₹${totalSave.toLocaleString('en-IN')}</b> tak bach sakta hai. Order banate waqt NAM khud apply kar dega.</div>
+  </div>`);
+  chat.appendChild(card);scroll(); homeMenu();
+}
+
+/* ============ SUPPLIER PAYMENT / UDHAAR TRACKER ============ */
+function renderPayments(){
+  clearQuick(); sys('💳 Udhaar — dono taraf');
+  // payables (you owe)
+  const payable=[...PAYABLES].sort((a,b)=>a.dueInDays-b.dueInDays).map(pa=>{
+    const sup=SUPPLIERS[pa.sup];
+    let badge,txt;
+    if(pa.dueInDays<0){badge='b-over';txt=`${-pa.dueInDays} din OVERDUE`;}
+    else if(pa.dueInDays<=3){badge='b-due';txt=`${pa.dueInDays} din mein due`;}
+    else{badge='b-ok';txt=`${pa.dueInDays} din baaki`;}
+    return `<div class="fl"><span class="logo ${sup.cls}">${sup.name}</span>
+      <div class="info"><div class="meta"><span class="badge ${badge}">${txt}</span></div></div>
+      <div class="rt"><div class="big" style="color:#ff9b9b">₹${pa.amt.toLocaleString('en-IN')}</div><small>dena</small></div></div>`;
+  }).join('');
+  // receivables (owed to you)
+  const receivable=[...RECEIVABLES].sort((a,b)=>b.ageDays-a.ageDays).map(rc=>{
+    const sup=SUPPLIERS[rc.sup];
+    return `<div class="fl"><span class="logo ${sup.cls}">${sup.name}</span>
+      <div class="info"><div class="nm" style="font-size:12px"><span class="badge b-scheme">${rc.type}</span></div>
+        <div class="meta">${rc.note} · ${rc.ageDays} din se pending</div></div>
+      <div class="rt"><div class="big save">₹${rc.amt.toLocaleString('en-IN')}</div><small>lena</small></div></div>`;
+  }).join('');
+  const totDue=PAYABLES.reduce((t,p)=>t+p.amt,0);
+  const totGet=RECEIVABLES.reduce((t,r)=>t+r.amt,0);
+  const net=totDue-totGet;
+  const overdue=PAYABLES.filter(p=>p.dueInDays<0).length;
+  const card=el(`<div class="fc fadein">
+    <div class="fc-h udh"><span class="fi">🧾</span><div><div class="ft">Net ₹${Math.abs(net).toLocaleString('en-IN')} ${net>=0?'aapko dena hai':'aapko lena hai'}</div><div class="fs">₹${totDue.toLocaleString('en-IN')} dena · ₹${totGet.toLocaleString('en-IN')} lena${overdue?` · ${overdue} overdue`:''}</div></div></div>
+    <div class="fc-sec">🔴 Aapko DENA hai (${PAYABLES.length})</div>
+    ${payable}
+    <div class="fc-sec">🟢 Aapko LENA hai (${RECEIVABLES.length})</div>
+    ${receivable}
+    <div class="nudge">🟢 <b>₹${totGet.toLocaleString('en-IN')} aapka phasa hua hai</b> — credit notes aur scheme payouts. NAM ne suppliers ke saath flag kar diya hai, settle hote hi adjust ho jayega.</div>
+    <div class="fc-foot"><button class="btn pay" onclick="setReminders()">🔔 Reminders set karo (dono taraf)</button></div>
+  </div>`);
+  chat.appendChild(card);scroll(); homeMenu();
+}
+async function setReminders(){clearQuick();await botSay('Ho gaya ✅ Dena hai uska 1 din pehle reminder, aur lena hai (credit notes/scheme) uske liye main suppliers ke saath follow-up karta rahunga. Grain ka overdue abhi clear karna better hoga.',700);homeMenu();}
+
+/* ============ PRICE INTELLIGENCE ============ */
+function renderPriceWatch(){
+  clearQuick(); sys('📈 Price watch — is mahine');
+  const rows=[];
+  Object.entries(PRICE_TREND).forEach(([pid,sups])=>{
+    const p=findProduct(pid); if(!p)return;
+    const worst=Object.entries(sups).sort((a,b)=>b[1]-a[1])[0]; // biggest hike
+    if(worst[1]<=0)return;
+    const ranked=scoreOffers(sizeOf(p,0).offers); const best=ranked[0];
+    const cheaper=best.sup!==worst[0];
+    rows.push(`<div class="fl"><div class="ic prod">${p.emoji}</div>
+      <div class="info"><div class="nm">${p.name[lang]}</div>
+        <div class="meta"><span class="sup-pill ${SUPPLIERS[worst[0]].cls}">${SUPPLIERS[worst[0]].name}</span> <span class="up">▲${worst[1]}%</span>${cheaper?` · ab <span class="sup-pill ${SUPPLIERS[best.sup].cls}">${SUPPLIERS[best.sup].name}</span> sasta ₹${best.price.toLocaleString('en-IN')}`:''}</div></div>
+      <div class="rt">${cheaper?`<span class="badge b-scheme">switch karo</span>`:`<span class="badge b-due">watch</span>`}</div></div>`);
+  });
+  const card=el(`<div class="fc fadein">
+    <div class="fc-h price"><span class="fi">📊</span><div><div class="ft">${rows.length} price movements</div><div class="fs">Suppliers ne rate badhaye — NAM market se compare karta hai</div></div></div>
+    ${rows.join('')}
+    <div class="nudge">Jahaan supplier ne zyada badhaya hai, NAM order ke waqt khud sasta alternative suggest karega.</div>
+  </div>`);
+  chat.appendChild(card);scroll(); homeMenu();
+}
+
+/* composer */
+function onSend(){
+  const box=document.getElementById('input'); const txt=box.innerText.trim(); if(!txt)return;
+  box.innerHTML=''; handleText(txt);
+}
+document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();onSend()}});
+
+/* toggles */
+function toggleTheme(){const cur=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',cur?'dark':'light');document.getElementById('themebtn').textContent=cur?'🌙':'☀️';}
+
+start();
+</script>
+</body>
+</html>
